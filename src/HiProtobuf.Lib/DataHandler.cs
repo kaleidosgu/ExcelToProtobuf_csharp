@@ -14,12 +14,13 @@ using System.Linq;
 using System.Reflection;
 using OfficeOpenXml;
 using HiFramework.Log;
+using System.Collections.Generic;
 
 namespace HiProtobuf.Lib
 {
     internal class DataHandler
     {
-        public const string NameSpace = "TableTool";
+        public const string NameSpace = "Depth.Tmp";
         private Assembly _assembly;
         private object _excelIns;
         public DataHandler()
@@ -41,68 +42,97 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 string protoPath = files[i];
-                string name = Path.GetFileNameWithoutExtension(protoPath);
-                string excelInsName = $"{NameSpace}.Excel_" + name;
-                _excelIns = _assembly.CreateInstance(excelInsName);
-                string excelPath = Settings.Excel_Folder + "/" + name + ".xlsx";
-                ProcessData(excelPath);
+                string strClassName = Path.GetFileNameWithoutExtension(protoPath);
+                string strNameSpace = "";
+                if (ProtoHandler.ClassNamespaceMap.TryGetValue(strClassName, out var ns))
+                {
+                    strNameSpace = ns;
+                }
+                else
+                {
+                    Log.Info($"Class {strClassName} not found in ProtoHandler.ClassNamespaceMap, using empty namespace.");
+                }
+                string excelPath = Settings.Excel_Folder + "/" + strNameSpace + ".xlsx";
+                ProcessData(excelPath, strNameSpace, strClassName);
             }
         }
 
-        private void ProcessData(string path)
+        // ... existing code ...
+        private void ProcessData(string path, string strNameSpace, string strClassName)
         {
             AssertThat.IsTrue(File.Exists(path), "Excel file can not find");
             var name = Path.GetFileNameWithoutExtension(path);
             var fileInfo = new FileInfo(path);
             using (ExcelPackage excelPackage = new ExcelPackage(fileInfo))
             {
-                ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets[0];
-                var rowCount = worksheet.Dimension.Rows;
-                var columnCount = worksheet.Dimension.Columns;
-                var excel_Type = _excelIns.GetType();
-                var dataProp = excel_Type.GetProperty("Data");
-                var dataIns = dataProp.GetValue(_excelIns);
-                var dataType = dataProp.PropertyType;
-                for (int i = 4; i <= rowCount; i++)
+                foreach (ExcelWorksheet _worksheet in excelPackage.Workbook.Worksheets)
                 {
-                    var ins = _assembly.CreateInstance($"{NameSpace}.{name}");
-                    var addMethod = dataType.GetMethod("Add", new Type[] { ins.GetType() });
-                    //TODO 最初配置表数据用map存储，现在改为使用list存储 不需要强制第一个字段为int 作为key值
-                    //int id = (int)((Range)usedRange.Cells[i, 1]).Value2; 
-                    addMethod.Invoke(dataIns, new[] { ins });
-                    for (int j = 1; j <= columnCount; j++)
+                    if (strClassName.Equals(_worksheet.Name) == false)
                     {
-                        var variableType = worksheet.Cells[2, j].Value?.ToString();
-                        var variableName = worksheet.Cells[3, j].Value?.ToString();
-                        var variableValue = worksheet.Cells[i, j].Value?.ToString();
-                        var insType = ins.GetType();
-                        var fieldName = FirstCharToLower(variableName + "_");//首字母小写，防止获取不到正确的属性
-                        FieldInfo insField = insType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-                        var value = GetVariableValue(variableType, variableValue);
-                        if (insField == null)
+                        continue;
+                    }
+                    if (_worksheet.Tables == null || _worksheet.Tables.Count == 0)
+                    {
+                        Log.Error($"Worksheet {_worksheet.Name} 没有找到Table");
+                        continue;
+                    }
+                    var _table = _worksheet.Tables[0];
+                    var startRow = _table.Address.Start.Row;
+                    var endRow = _table.Address.End.Row;
+                    var startCol = _table.Address.Start.Column;
+                    var endCol = _table.Address.End.Column;
+
+                    string excelInsName = $"{strNameSpace}.Excel_" + _worksheet.Name;
+                    _excelIns = _assembly.CreateInstance(excelInsName);
+                    if (_excelIns == null)
+                    {
+                        string errorInfo = $"文件不存在空间: {strNameSpace}, 类名: {_worksheet.Name}, Excel文件: {name}.xlsx";
+                        Log.Error(errorInfo);
+                        continue;
+                    }
+
+                    var excel_Type = _excelIns.GetType();
+                    var dataProp = excel_Type.GetProperty("Data");
+                    var dataIns = dataProp.GetValue(_excelIns);
+                    var dataType = dataProp.PropertyType;
+                    var insTypeName = $"{strNameSpace}.{_worksheet.Name}";
+
+                    // 数据从table的第4行开始
+                    for (int i = startRow + 3; i <= endRow; i++)
+                    {
+                        var ins = _assembly.CreateInstance(insTypeName);
+                        if (ins == null)
                         {
-                            //TODO 临时给XX_XX命名规则的数据表做兼容处理，后续要规避这种命名
-                            var index = fieldName.IndexOf("_");
-                            var charArray = fieldName.ToCharArray();
-                            var tempCharUper = charArray[index + 1].ToString().ToUpper();
-                            charArray[index + 1] = tempCharUper.ToCharArray()[0];
-                            fieldName = new string(charArray);
-                            fieldName = fieldName.Remove(index, 1);
-                            insField = insType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-                            value = GetVariableValue(variableType, variableValue);
+                            string errorInfo = $"Excel文件: {name}.xlsx，命名空间: [{strNameSpace}], 类名: [{_worksheet.Name}] 无法在被注册列表找到";
+                            Log.Error(errorInfo);
+                            break;
+                        }
+                        var addMethod = dataType.GetMethod("Add", new Type[] { ins.GetType() });
+                        addMethod.Invoke(dataIns, new[] { ins });
+                        for (int j = startCol; j <= endCol; j++)
+                        {
+                            var variableType = _worksheet.Cells[startRow + 1, j].Value?.ToString();
+                            var variableName = _worksheet.Cells[startRow + 2, j].Value?.ToString();
+                            var variableValue = _worksheet.Cells[i, j].Value?.ToString();
+                            var insType = ins.GetType();
+                            FieldInfo insField = FindFieldInfo(insType, variableName);
+                            var value = GetVariableValue(variableType, variableValue);
                             if (insField == null)
                             {
-                                Log.Info($"文件： {name} 属性： {variableName} 没有反射获取到对应的数据");
+                                Log.Info($"文件： {name} 属性： {variableName} 没有反射获取到对应的数据，请检查命名规范");
                             }
-                            Log.Info($"文件： {name} 属性： {variableName} 命名规则不正常，注意修复");
+                            else
+                            {
+                                insField.SetValue(ins, value);
+                            }
                         }
-                        insField?.SetValue(ins, value);
                     }
+                    Console.WriteLine($"_excelIns  {path} ");
+                    Serialize(_excelIns);
                 }
-                Console.WriteLine($"_excelIns  {path} ");
-                Serialize(_excelIns);
             }
         }
+        // ... existing code ...
 
         object GetVariableValue(string type, string value)
         {
@@ -359,5 +389,45 @@ namespace HiProtobuf.Lib
             return str;
         }
 
+        private FieldInfo FindFieldInfo(Type insType, string variableName)
+        {
+            // 1. 原始：首字母小写+下划线
+            string fieldName = FirstCharToLower(variableName + "_");
+            FieldInfo field = insType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field != null) return field;
+
+            // 2. 下划线转驼峰（如 enemy_id -> enemyId_）
+            string camelCase = ToCamelCase(variableName) + "_";
+            field = insType.GetField(camelCase, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field != null) return field;
+
+            // 3. 去掉末尾下划线
+            string noEndUnderscore = camelCase.TrimEnd('_');
+            field = insType.GetField(noEndUnderscore, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field != null) return field;
+
+            // 4. 全部小写
+            string lower = variableName.ToLower() + "_";
+            field = insType.GetField(lower, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field != null) return field;
+
+            // 5. 直接用原名
+            field = insType.GetField(variableName, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (field != null) return field;
+
+            return null;
+        }
+
+        private string ToCamelCase(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            var parts = input.Split('_');
+            for (int i = 1; i < parts.Length; i++)
+            {
+                if (parts[i].Length > 0)
+                    parts[i] = char.ToUpper(parts[i][0]) + parts[i].Substring(1);
+            }
+            return string.Join("", parts);
+        }
     }
 }

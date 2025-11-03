@@ -8,11 +8,13 @@
 using HiFramework.Assert;
 using OfficeOpenXml;
 using System.IO;
+using System.Collections.Generic;
 
 namespace HiProtobuf.Lib
 {
     internal class ProtoHandler
     {
+        public static Dictionary<string, string> ClassNamespaceMap = new Dictionary<string, string>();
         public ProtoHandler()
         {
             var path = Settings.Export_Folder + Settings.proto_folder;
@@ -45,13 +47,17 @@ namespace HiProtobuf.Lib
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage excelPackage = new ExcelPackage(fileInfo))
             {
-                var count = excelPackage.Workbook.Worksheets.Count;
-                var worksheet = excelPackage.Workbook.Worksheets[0];
-                AssertThat.IsNotNull(worksheet, "Excel's sheet is null");
-                var rowCount = worksheet.Dimension.Rows;
-                var columnCount = worksheet.Dimension.Columns;
-                var name = Path.GetFileNameWithoutExtension(path);
-                new ProtoGenerater(name, rowCount, columnCount, worksheet).Process();
+                var worksheets = excelPackage.Workbook.Worksheets;
+                var strNameSpace = Path.GetFileNameWithoutExtension(path);
+                foreach (var worksheet in worksheets)
+                {
+                    AssertThat.IsNotNull(worksheet, "Excel's sheet is null");
+                    var strNameClass = worksheet.Name;
+                    // 记录 class-namespace 映射
+                    if (!ClassNamespaceMap.ContainsKey(strNameClass))
+                        ClassNamespaceMap.Add(strNameClass, strNameSpace);
+                    new ProtoGenerater(strNameSpace, strNameClass, worksheet).Process();
+                }
             }
         }
     }

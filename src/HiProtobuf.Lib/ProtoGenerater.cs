@@ -15,21 +15,19 @@ namespace HiProtobuf.Lib
 {
     internal class ProtoGenerater
     {
-        private string _name;
-        private int _rowCount;
-        private int _colCount;
+        private string _className;
+        private string _nameSpace;
         private string _path;
         private int _index;
         private ExcelWorksheet _excelWorksheet;
 
-        public ProtoGenerater(string name, int rowCount, int colCount, ExcelWorksheet excelWorksheet)
+        public ProtoGenerater(string nameSpace, string className, ExcelWorksheet excelWorksheet)
         {
-            _name = name;
-            _rowCount = rowCount;
-            _colCount = colCount;
+            _nameSpace = nameSpace;
+            _className = className;
             _excelWorksheet = excelWorksheet;
 
-            _path = Settings.Export_Folder + Settings.proto_folder + "/" + name + ".proto";
+            _path = Settings.Export_Folder + Settings.proto_folder + "/" + _className + ".proto";
         }
 
         public void Process()
@@ -56,10 +54,10 @@ option java_outer_classname = ""{0}"";
 // [END java_declaration]
 
 // [START csharp_declaration]
-option csharp_namespace = ""TableTool""; 
+option csharp_namespace = ""{1}""; 
 // [END csharp_declaration]
 ";
-            header = string.Format(header, _name + "_classname");
+            header = string.Format(header, _className + "_classname",_nameSpace);
             var sw = File.AppendText(_path);
             sw.WriteLine(header);
             sw.Close();
@@ -67,12 +65,24 @@ option csharp_namespace = ""TableTool"";
 
         void ProcessVariables()
         {
-            var str = "message " + _name + " {\n";
-            for (int j = 1; j <= _colCount; j++)
+            var str = "message " + _className + " {\n";
+            if (_excelWorksheet.Tables != null && _excelWorksheet.Tables.Count > 0)
             {
-                var type = _excelWorksheet.Cells[2, j].Value.ToString();
-                var name = _excelWorksheet.Cells[3, j].Value.ToString();
-                str += GetVariableString(type, name);
+                var table = _excelWorksheet.Tables[0];
+                var startRow = table.Address.Start.Row;
+                var startCol = table.Address.Start.Column;
+                var endCol = table.Address.End.Column;
+                // 从table的第二行开始取
+                for (int j = startCol; j <= endCol; j++)
+                {
+                    var type = _excelWorksheet.Cells[startRow + 1, j].Value?.ToString();
+                    var name = _excelWorksheet.Cells[startRow + 2, j].Value?.ToString();
+                    str += GetVariableString(type, name);
+                }
+            }
+            else
+            {
+                Log.Info($"Worksheet {_className} does not contain any tables.");
             }
             str += "}";
             var sw = File.AppendText(_path);
@@ -105,7 +115,7 @@ message Excel_{0}
 {{
     repeated {1} {2} = 1;
 }}";
-            str = string.Format(str, _name, _name, "Data");
+            str = string.Format(str, _className, _className, "Data");
             var sw = File.AppendText(_path);
             sw.WriteLine(str);
             sw.Close();

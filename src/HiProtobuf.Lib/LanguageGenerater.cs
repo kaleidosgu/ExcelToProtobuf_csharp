@@ -6,6 +6,7 @@
  ****************************************************************************/
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace HiProtobuf.Lib
 {
@@ -55,7 +56,27 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i];
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, outFolder, filePath);
+                // 解析 proto 文件中的 namespace
+                string protoContent = File.ReadAllText(filePath);
+                string ns = "";
+                var match = Regex.Match(protoContent, @"option\s+csharp_namespace\s*=\s*""([^""]+)""");
+                if (match.Success)
+                {
+                    ns = match.Groups[1].Value;
+                }
+                else
+                {
+                    // fallback: try to get package
+                    match = Regex.Match(protoContent, @"package\s+([a-zA-Z0-9_.]+)\s*;");
+                    if (match.Success)
+                    {
+                        ns = match.Groups[1].Value;
+                    }
+                }
+                string nsPath = string.IsNullOrEmpty(ns) ? "default" : ns; // 不再替换点为路径分隔符
+                string nsOutFolder = Path.Combine(outFolder, nsPath);
+                Directory.CreateDirectory(nsOutFolder);
+                var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, nsOutFolder, filePath);
                 var log = Common.Cmd(command);
             }
         }

@@ -39,7 +39,7 @@ namespace HiProtobuf.UI
            
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void _OnClickChooseExport(object sender, EventArgs e)
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
@@ -53,7 +53,7 @@ namespace HiProtobuf.UI
             Settings.Export_Folder = textBox1.Text;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void _OnClickChooseExcel(object sender, EventArgs e)
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
@@ -68,7 +68,7 @@ namespace HiProtobuf.UI
         }
 
 
-        private void button5_Click(object sender, EventArgs e)
+        private void _OnCscClick(object sender, EventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Filter = "csc(*.exe)|*.exe";
@@ -84,7 +84,7 @@ namespace HiProtobuf.UI
             Settings.Compiler_Path = textBox5.Text;
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        private void _OnExportClick(object sender, EventArgs e)
         {
             Log.Info("开始导出");
             Manager.Export();
