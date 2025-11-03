@@ -36,7 +36,9 @@ namespace HiProtobuf.Lib
         public void Process()
         {
             var dllPath = Settings.Export_Folder + Settings.language_folder + Settings.csharp_dll_folder + Compiler.DllName;
-            _assembly = Assembly.LoadFrom(dllPath);
+            // Load into memory to avoid locking the DLL file, so the folder can be deleted next run
+            var dllBytes = File.ReadAllBytes(dllPath);
+            _assembly = Assembly.Load(dllBytes);
             var protoFolder = Settings.Export_Folder + Settings.proto_folder;
             string[] files = Directory.GetFiles(protoFolder, "*.proto", SearchOption.AllDirectories);
             for (int i = 0; i < files.Length; i++)
