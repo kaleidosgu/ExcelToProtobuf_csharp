@@ -3,3 +3,6 @@
 /src/HiProtobuf.Lib/obj
 /src/HiProtobuf.Test/obj
 /src/.vs
+src/HiProtobuf.Lib/bin
+src/HiProtobuf.Test/bin
+src/HiProtobuf.UI/bin
