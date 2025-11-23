@@ -45,6 +45,7 @@ namespace HiProtobuf.Lib
                 var command = ilProtoc + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, outFolder, filePath);
                 var log = Common.Cmd(command);
             }
+            ConvertLineEndingsToCRLF(outFolder);
         }
 
         private void Process_csharp(string protoPath)
@@ -79,6 +80,7 @@ namespace HiProtobuf.Lib
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, nsOutFolder, filePath);
                 var log = Common.Cmd(command);
             }
+            ConvertLineEndingsToCRLF(outFolder);
         }
 
         private void Process_cpp(string protoPath)
@@ -93,6 +95,7 @@ namespace HiProtobuf.Lib
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --cpp_out={1} {2}", protoPath, outFolder, filePath);
                 var log = Common.Cmd(command);
             }
+            ConvertLineEndingsToCRLF(outFolder);
         }
 
         private void Process_go(string protoPath)
@@ -107,6 +110,7 @@ namespace HiProtobuf.Lib
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --go_out={1} {2}", protoPath, outFolder, filePath);
                 var log = Common.Cmd(command);
             }
+            ConvertLineEndingsToCRLF(outFolder);
         }
 
         private void Process_java(string protoPath)
@@ -121,6 +125,7 @@ namespace HiProtobuf.Lib
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --java_out={1} {2}", protoPath, outFolder, filePath);
                 var log = Common.Cmd(command);
             }
+            ConvertLineEndingsToCRLF(outFolder);
         }
 
         private void Process_python(string protoPath)
@@ -134,6 +139,44 @@ namespace HiProtobuf.Lib
                 var filePath = files[i];
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --python_out={1} {2}", protoPath, outFolder, filePath);
                 var log = Common.Cmd(command);
+            }
+            ConvertLineEndingsToCRLF(outFolder);
+        }
+
+        /// <summary>
+        /// 将文件夹中所有文本文件的换行符从 LF 转换为 CRLF
+        /// </summary>
+        private void ConvertLineEndingsToCRLF(string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+                return;
+
+            // 递归获取所有文件
+            string[] files = Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories);
+            
+            foreach (var filePath in files)
+            {
+                try
+                {
+                    // 读取文件内容为文本（protoc 生成的文件通常是 UTF-8）
+                    string content = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
+                    
+                    // 检查是否包含单独的 LF（不是 CRLF 的一部分）
+                    if (content.Contains("\n"))
+                    {
+                        // 先将所有 CRLF 统一为 LF，然后再将所有 LF 转换为 CRLF
+                        // 这样可以确保所有换行符都是 CRLF
+                        content = content.Replace("\r\n", "\n").Replace("\n", "\r\n");
+                        
+                        // 写回文件，使用 UTF-8 编码
+                        File.WriteAllText(filePath, content, System.Text.Encoding.UTF8);
+                    }
+                }
+                catch
+                {
+                    // 忽略无法处理的文件（可能是二进制文件或编码问题）
+                    continue;
+                }
             }
         }
     }
