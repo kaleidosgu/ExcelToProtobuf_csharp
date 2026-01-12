@@ -23,12 +23,12 @@ namespace HiProtobuf.Lib
             Directory.CreateDirectory(_languageFolder);
 
             var protoFolder = Settings.Export_Folder + Settings.proto_folder;
-            Process_csharpForILRumtime(protoFolder);
+            //Process_csharpForILRumtime(protoFolder);
             Process_csharp(protoFolder);
-            Process_cpp(protoFolder);
-            Process_go(protoFolder);
-            Process_java(protoFolder);
-            Process_python(protoFolder);
+            //Process_cpp(protoFolder);
+            //Process_go(protoFolder);
+            //Process_java(protoFolder);
+            //Process_python(protoFolder);
         }
 
         private void Process_csharpForILRumtime(string protoPath)
