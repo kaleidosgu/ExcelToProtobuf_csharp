@@ -3,4 +3,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartArguments>e:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Config\localize_config.json</StartArguments>
   </PropertyGroup>
+  <PropertyGroup>
+    <PublishUrlHistory>E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\Publish\</PublishUrlHistory>
+    <InstallUrlHistory />
+    <SupportUrlHistory />
+    <UpdateUrlHistory />
+    <BootstrapperUrlHistory />
+    <ErrorReportUrlHistory />
+    <FallbackCulture>zh-CN</FallbackCulture>
+    <VerifyUploadedFiles>false</VerifyUploadedFiles>
+  </PropertyGroup>
 </Project>

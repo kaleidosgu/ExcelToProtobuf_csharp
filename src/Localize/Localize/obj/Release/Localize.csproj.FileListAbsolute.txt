@@ -5,3 +5,5 @@ E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\R
 E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.csproj.Up2Date
 E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.exe
 E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.pdb
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\Example\Localize\Localize.exe
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\Example\Localize\Localize.pdb
