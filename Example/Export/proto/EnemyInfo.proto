@@ -18,7 +18,7 @@ option csharp_namespace = "Depth.Data";
 
 message EnemyInfo {
   uint32 ID = 1;
-  string Name = 2;
+  uint32 Name = 2;
   string RootPath = 3;
   string Path = 4;
 }

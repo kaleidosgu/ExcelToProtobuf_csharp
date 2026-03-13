@@ -97,6 +97,14 @@ option csharp_namespace = ""{1}"";
         private string GetVariableString(string type, string name)
         {
             AssertThat.IsTrue(Common.VariableType.Contains(type), "Type define error");
+            if (type == Common.text_)
+            {
+                type = "uint32";
+            }
+            else if (type == Common.text_s)
+            {
+                type = "repeated uint32";
+            }
             _index++;//从1开始定义
             string str = "";
             if (type.Contains("[]"))//如果是数组进行转换

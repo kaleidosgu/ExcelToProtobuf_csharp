@@ -41,6 +41,7 @@ namespace HiProtobuf.Lib
         public const string bool_ = "bool";
         public const string string_ = "string";
         public const string bytes_ = "bytes";
+        public const string text_ = "text";
 
         public const string double_s = "double[]";
         public const string float_s = "float[]";
@@ -57,11 +58,12 @@ namespace HiProtobuf.Lib
         public const string bool_s = "bool[]";
         public const string string_s = "string[]";
         public const string bytes_s = "bytes[]";
+        public const string text_s = "text[]";
 
 
         public static readonly string[] VariableType = new[] {
-            "double", "float", "int32", "int64", "uint32", "uint64", "sint32", "sint64", "fixed32", "fixed64","sfixed32", "sfixed64", "bool", "string", "bytes",
-            "double[]", "float[]", "int32[]", "int64[]", "uint32[]", "uint64[]", "sint32[]", "sint64[]", "fixed32[]", "fixed64[]","sfixed32[]", "sfixed64[]", "bool[]", "string[]", "bytes[]"
+            "double", "float", "int32", "int64", "uint32", "uint64", "sint32", "sint64", "fixed32", "fixed64","sfixed32", "sfixed64", "bool", "string", "bytes", "text",
+            "double[]", "float[]", "int32[]", "int64[]", "uint32[]", "uint64[]", "sint32[]", "sint64[]", "fixed32[]", "fixed64[]","sfixed32[]", "sfixed64[]", "bool[]", "string[]", "bytes[]", "text[]"
         };
 
         internal static string Cmd(string str)

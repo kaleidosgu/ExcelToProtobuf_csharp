@@ -23,6 +23,10 @@ namespace HiProtobuf.Lib
         public const string NameSpace = "Depth.Tmp";
         private Assembly _assembly;
         private object _excelIns;
+        private readonly Dictionary<string, string> _textValueToKey = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _textKeyToValue = new Dictionary<string, string>();
+        private int _textKeyCounter = 100000;
+
         public DataHandler()
         {
             var folder = Settings.Export_Folder + Settings.dat_folder;
@@ -31,6 +35,13 @@ namespace HiProtobuf.Lib
                 Directory.Delete(folder, true);
             }
             Directory.CreateDirectory(folder);
+
+            var locFolder = Settings.Export_Folder + Settings.localization_folder;
+            if (Directory.Exists(locFolder))
+            {
+                Directory.Delete(locFolder, true);
+            }
+            Directory.CreateDirectory(locFolder);
         }
 
         public void Process()
@@ -133,6 +144,55 @@ namespace HiProtobuf.Lib
                     Serialize(_excelIns);
                 }
             }
+            ExportLocalization();
+        }
+
+        private string GetTextKey(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+            if (_textValueToKey.TryGetValue(value, out var existingKey))
+            {
+                return existingKey;
+            }
+            var newKey = (_textKeyCounter++).ToString();
+            _textValueToKey[value] = newKey;
+            _textKeyToValue[newKey] = value;
+            return newKey;
+        }
+
+        private void ExportLocalization()
+        {
+            if (_textKeyToValue.Count == 0)
+            {
+                return;
+            }
+            var path = Settings.Export_Folder + Settings.localization_folder + "/localization.json";
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("{");
+            int count = 0;
+            foreach (var kvp in _textKeyToValue)
+            {
+                count++;
+                var key = EscapeJsonString(kvp.Key);
+                var value = EscapeJsonString(kvp.Value);
+                sb.AppendLine($"  \"{key}\": \"{value}\"{(count < _textKeyToValue.Count ? "," : "")}");
+            }
+            sb.AppendLine("}");
+            File.WriteAllText(path, sb.ToString());
+            Log.Info($"Localization file generated: {path}");
+        }
+
+        private string EscapeJsonString(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            return input.Replace("\\", "\\\\")
+                        .Replace("\"", "\\\"")
+                        .Replace("\n", "\\n")
+                        .Replace("\r", "\\r")
+                        .Replace("\t", "\\t");
         }
         // ... existing code ...
 
@@ -173,6 +233,8 @@ namespace HiProtobuf.Lib
                 return isEmpty ? string.Empty : value.ToString();
             if (type == Common.bytes_)
                 return isEmpty ? ByteString.CopyFromUtf8(string.Empty) : ByteString.CopyFromUtf8(value.ToString());
+            if (type == Common.text_)
+                return isEmpty ? 0 : uint.Parse(GetTextKey(value));
             if (type == Common.double_s)
             {
                 RepeatedField<double> newValue = new RepeatedField<double>();
@@ -365,6 +427,20 @@ namespace HiProtobuf.Lib
                     for (int i = 0; i < datas.Length; i++)
                     {
                         newValue.Add(datas[i]);
+                    }
+                }
+                return newValue;
+            }
+            if (type == Common.text_s)
+            {
+                RepeatedField<uint> newValue = new RepeatedField<uint>();
+                if (!isEmpty)
+                {
+                    string data = value.Trim('"');
+                    string[] datas = data.Split('|');
+                    for (int i = 0; i < datas.Length; i++)
+                    {
+                        newValue.Add(uint.Parse(GetTextKey(datas[i])));
                     }
                 }
                 return newValue;

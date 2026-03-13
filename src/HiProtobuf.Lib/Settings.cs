@@ -51,6 +51,11 @@ namespace HiProtobuf.Lib
         /// </summary>
         internal static readonly string dat_folder = "/dat";
 
+        /// <summary>
+        /// 本地化文件存放目录
+        /// </summary>
+        internal static readonly string localization_folder = "/Localization";
+
         //导出语言文件夹
         internal static readonly string csharp_folder = "/csharp";
         internal static readonly string csharpForILRumtime_folder = "/csharpForILRumtime";
