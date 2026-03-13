@@ -73,6 +73,7 @@ namespace HiProtobuf.Lib
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
             process.StartInfo.RedirectStandardInput = true;
             process.Start();
 
@@ -80,16 +81,15 @@ namespace HiProtobuf.Lib
             process.StandardInput.AutoFlush = true;
             process.StandardInput.WriteLine("exit");
 
-            StreamReader reader = process.StandardOutput;//截取输出流
-
-            string output = reader.ReadLine();//每次读取一行
-
-            while (!reader.EndOfStream)
-            {
-                output += reader.ReadLine();
-            }
+            var output = process.StandardOutput.ReadToEnd();
+            var error = process.StandardError.ReadToEnd();
 
             process.WaitForExit();
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                return "ERROR: " + error + "\nOUTPUT: " + output;
+            }
             return output;
         }
     }

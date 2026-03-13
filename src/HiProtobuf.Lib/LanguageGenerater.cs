@@ -4,8 +4,11 @@
  * Document: https://github.com/hiramtan/HiProtobuf
  * Author: hiramtan@live.com
  ****************************************************************************/
+using HiFramework.Log;
+using HiProtobuf.Lib;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace HiProtobuf.Lib
@@ -54,32 +57,12 @@ namespace HiProtobuf.Lib
             Directory.CreateDirectory(outFolder);
             //递归查询
             string[] files = Directory.GetFiles(protoPath, "*.proto", SearchOption.AllDirectories);
-            for (int i = 0; i < files.Length; i++)
-            {
-                var filePath = files[i];
-                // 解析 proto 文件中的 namespace
-                string protoContent = File.ReadAllText(filePath);
-                string ns = "";
-                var match = Regex.Match(protoContent, @"option\s+csharp_namespace\s*=\s*""([^""]+)""");
-                if (match.Success)
-                {
-                    ns = match.Groups[1].Value;
-                }
-                else
-                {
-                    // fallback: try to get package
-                    match = Regex.Match(protoContent, @"package\s+([a-zA-Z0-9_.]+)\s*;");
-                    if (match.Success)
-                    {
-                        ns = match.Groups[1].Value;
-                    }
-                }
-                string nsPath = string.IsNullOrEmpty(ns) ? "default" : ns; // 不再替换点为路径分隔符
-                string nsOutFolder = Path.Combine(outFolder, nsPath);
-                Directory.CreateDirectory(nsOutFolder);
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, nsOutFolder, filePath);
-                var log = Common.Cmd(command);
-            }
+            // 编译所有 proto 文件，传入所有文件以便 protoc 能找到 import 的文件
+            var allProtoFiles = string.Join(" ", files.Select(f => Path.GetFileName(f)));
+            var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, outFolder, allProtoFiles);
+            //Log.Info($"Proto编译命令(C#): {command}");
+            var log = Common.Cmd(command);
+            //Log.Info($"Proto编译结果(C#): {log}");
             ConvertLineEndingsToCRLF(outFolder);
         }
 
@@ -93,7 +76,9 @@ namespace HiProtobuf.Lib
             {
                 var filePath = files[i];
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --cpp_out={1} {2}", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(C++): {command}");
                 var log = Common.Cmd(command);
+                Log.Info($"Proto编译结果(C++): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
         }
@@ -108,7 +93,9 @@ namespace HiProtobuf.Lib
             {
                 var filePath = files[i];
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --go_out={1} {2}", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(Go): {command}");
                 var log = Common.Cmd(command);
+                Log.Info($"Proto编译结果(Go): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
         }
@@ -123,7 +110,9 @@ namespace HiProtobuf.Lib
             {
                 var filePath = files[i];
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --java_out={1} {2}", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(Java): {command}");
                 var log = Common.Cmd(command);
+                Log.Info($"Proto编译结果(Java): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
         }
@@ -138,7 +127,9 @@ namespace HiProtobuf.Lib
             {
                 var filePath = files[i];
                 var command = Settings.Protoc_Path + string.Format(" -I={0} --python_out={1} {2}", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(Python): {command}");
                 var log = Common.Cmd(command);
+                Log.Info($"Proto编译结果(Python): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
         }
@@ -153,21 +144,21 @@ namespace HiProtobuf.Lib
 
             // 递归获取所有文件
             string[] files = Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories);
-            
+
             foreach (var filePath in files)
             {
                 try
                 {
                     // 读取文件内容为文本（protoc 生成的文件通常是 UTF-8）
                     string content = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-                    
+
                     // 检查是否包含单独的 LF（不是 CRLF 的一部分）
                     if (content.Contains("\n"))
                     {
                         // 先将所有 CRLF 统一为 LF，然后再将所有 LF 转换为 CRLF
                         // 这样可以确保所有换行符都是 CRLF
                         content = content.Replace("\r\n", "\n").Replace("\n", "\r\n");
-                        
+
                         // 写回文件，使用 UTF-8 编码
                         File.WriteAllText(filePath, content, System.Text.Encoding.UTF8);
                     }

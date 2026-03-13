@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HiFramework.Log;
 
 namespace HiProtobuf.Lib
 {
@@ -34,7 +35,9 @@ namespace HiProtobuf.Lib
             var dllPath = Settings.Export_Folder + Settings.language_folder + Settings.csharp_dll_folder + DllName;
             var csharpFolder = Settings.Export_Folder + Settings.language_folder + Settings.csharp_folder;
             commond = Settings.Compiler_Path + " " + string.Format(commond, dllPath, Settings.Protobuf_Dll_Path, csharpFolder);
-            Common.Cmd(commond);
+            //Log.Info($"编译命令: {commond}");
+            var result = Common.Cmd(commond);
+            //Log.Info($"编译结果: {result}");
         }
     }
 }

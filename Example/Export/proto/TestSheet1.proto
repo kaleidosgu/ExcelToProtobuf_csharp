@@ -9,19 +9,19 @@ package HiProtobuf;
 
 // [START java_declaration]
 option java_package = "com.HiProtobuf.HiProtobuf";
-option java_outer_classname = "Sheet1_classname";
+option java_outer_classname = "TestSheet1_classname";
 // [END java_declaration]
 
 // [START csharp_declaration]
-option csharp_namespace = "Example";
+option csharp_namespace = "Test";
 // [END csharp_declaration]
 
 import "Common.proto";
 
-message Sheet1 {
+message TestSheet1 {
 }
 
-message Excel_Sheet1
+message Excel_TestSheet1
 {
-    repeated Sheet1 Data = 1;
+    repeated TestSheet1 Data = 1;
 }

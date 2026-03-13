@@ -54,8 +54,10 @@ option java_outer_classname = ""{0}"";
 // [END java_declaration]
 
 // [START csharp_declaration]
-option csharp_namespace = ""{1}""; 
+option csharp_namespace = ""{1}"";
 // [END csharp_declaration]
+
+import ""Common.proto"";
 ";
             header = string.Format(header, _className + "_classname",_nameSpace);
             var sw = File.AppendText(_path);
@@ -99,7 +101,7 @@ option csharp_namespace = ""{1}"";
             AssertThat.IsTrue(Common.VariableType.Contains(type), "Type define error");
             if (type == Common.text_)
             {
-                type = "uint32";
+                type = "DepthText";
             }
             else if (type == Common.text_s)
             {

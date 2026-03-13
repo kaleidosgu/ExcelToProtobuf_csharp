@@ -56,6 +56,10 @@ namespace HiProtobuf.Lib
             {
                 string protoPath = files[i];
                 string strClassName = Path.GetFileNameWithoutExtension(protoPath);
+                if (strClassName == "Common")
+                {
+                    continue;
+                }
                 string strNameSpace = "";
                 if (ProtoHandler.ClassNamespaceMap.TryGetValue(strClassName, out var ns))
                 {
@@ -136,7 +140,30 @@ namespace HiProtobuf.Lib
                             }
                             else
                             {
-                                insField.SetValue(ins, value);
+                                if (variableType == Common.text_)
+                                {
+                                    var depthTextType = _assembly.GetType("Depth.Localize.DepthText");
+                                    if (depthTextType == null)
+                                    {
+                                        foreach (var t in _assembly.GetTypes())
+                                        {
+                                            if (t.Name == "DepthText")
+                                            {
+                                                depthTextType = t;
+                                                Log.Info($"Found type: {t.FullName}");
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    var depthText = Activator.CreateInstance(depthTextType);
+                                    var idProp = depthTextType.GetProperty("Id");
+                                    idProp.SetValue(depthText, value);
+                                    insField.SetValue(ins, depthText);
+                                }
+                                else
+                                {
+                                    insField.SetValue(ins, value);
+                                }
                             }
                         }
                     }
