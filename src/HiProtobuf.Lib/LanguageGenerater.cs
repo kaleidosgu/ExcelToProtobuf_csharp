@@ -57,12 +57,38 @@ namespace HiProtobuf.Lib
             Directory.CreateDirectory(outFolder);
             //递归查询
             string[] files = Directory.GetFiles(protoPath, "*.proto", SearchOption.AllDirectories);
-            // 编译所有 proto 文件，传入所有文件以便 protoc 能找到 import 的文件
+            // 先编译所有 proto 文件到同一个输出目录（为了处理 import）
             var allProtoFiles = string.Join(" ", files.Select(f => Path.GetFileName(f)));
             var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, outFolder, allProtoFiles);
-            //Log.Info($"Proto编译命令(C#): {command}");
+            Log.Info($"Proto编译命令(C#): {command}");
             var log = Common.Cmd(command);
-            //Log.Info($"Proto编译结果(C#): {log}");
+            Log.Info($"Proto编译结果(C#): {log}");
+            // 按命名空间移动生成的 .cs 文件到子目录
+            var csFiles = Directory.GetFiles(outFolder, "*.cs");
+            foreach (var csFile in csFiles)
+            {
+                string content = File.ReadAllText(csFile);
+                string ns = "";
+                var match = Regex.Match(content, @"namespace\s+([a-zA-Z0-9_.]+)");
+                if (match.Success)
+                {
+                    ns = match.Groups[1].Value;
+                }
+                if (!string.IsNullOrEmpty(ns))
+                {
+                    var destFolder = Path.Combine(outFolder, ns);
+                    var fileName = Path.GetFileName(csFile);
+                    var destFile = Path.Combine(destFolder, fileName);
+                    if (!Directory.Exists(destFolder))
+                    {
+                        Directory.CreateDirectory(destFolder);
+                    }
+                    if (!File.Exists(destFile))
+                    {
+                        File.Move(csFile, destFile);
+                    }
+                }
+            }
             ConvertLineEndingsToCRLF(outFolder);
         }
 
