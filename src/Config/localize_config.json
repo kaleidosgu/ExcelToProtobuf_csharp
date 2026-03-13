@@ -1,0 +1,7 @@
+{
+  "DefaultLanguage": "zh",
+  "JsonFilePath": "e:/WorkSpace/SourceCode/Tools/ExcelToProtobuf_csharp/Example/Export/Localization/localization.json",
+  "SupportedLanguages": ["en"],
+  "OllamaApiUrl": "http://127.0.0.1:11434",
+  "Model": "deepseek-r1:14b"
+}

@@ -1,0 +1,7 @@
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Example\Localize\Localize.exe
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Example\Localize\Localize.pdb
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.csproj.AssemblyReference.cache
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.csproj.CoreCompileInputs.cache
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.csproj.Up2Date
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.exe
+E:\WorkSpace\SourceCode\Tools\ExcelToProtobuf_csharp\src\Localize\Localize\obj\Release\Localize.pdb
