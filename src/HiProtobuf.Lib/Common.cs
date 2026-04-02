@@ -42,6 +42,8 @@ namespace HiProtobuf.Lib
         public const string string_ = "string";
         public const string bytes_ = "bytes";
         public const string text_ = "text";
+        public const string vector2_ = "vector2";
+        public const string vector3_ = "vector3";
 
         public const string double_s = "double[]";
         public const string float_s = "float[]";
@@ -62,7 +64,7 @@ namespace HiProtobuf.Lib
 
 
         public static readonly string[] VariableType = new[] {
-            "double", "float", "int32", "int64", "uint32", "uint64", "sint32", "sint64", "fixed32", "fixed64","sfixed32", "sfixed64", "bool", "string", "bytes", "text",
+            "double", "float", "int32", "int64", "uint32", "uint64", "sint32", "sint64", "fixed32", "fixed64","sfixed32", "sfixed64", "bool", "string", "bytes", "text", "vector2", "vector3",
             "double[]", "float[]", "int32[]", "int64[]", "uint32[]", "uint64[]", "sint32[]", "sint64[]", "fixed32[]", "fixed64[]","sfixed32[]", "sfixed64[]", "bool[]", "string[]", "bytes[]", "text[]"
         };
 

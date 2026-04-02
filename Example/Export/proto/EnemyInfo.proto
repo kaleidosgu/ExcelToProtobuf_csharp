@@ -23,6 +23,8 @@ message EnemyInfo {
   DepthText Name = 2;
   string RootPath = 3;
   string Path = 4;
+  Vector2 pos1 = 5;
+  Vector3 pos2 = 6;
 }
 
 message Excel_EnemyInfo

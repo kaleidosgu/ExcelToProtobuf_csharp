@@ -107,6 +107,14 @@ import ""Common.proto"";
             {
                 type = "repeated uint32";
             }
+            else if (type == Common.vector2_)
+            {
+                type = "Vector2";
+            }
+            else if (type == Common.vector3_)
+            {
+                type = "Vector3";
+            }
             _index++;//从1开始定义
             string str = "";
             if (type.Contains("[]"))//如果是数组进行转换

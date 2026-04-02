@@ -58,6 +58,19 @@ message DepthText
     uint32 id = 1;
     string text = 2;
 }
+
+message Vector2
+{
+    float x = 1;
+    float y = 2;
+}
+
+message Vector3
+{
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
 ";
             File.WriteAllText(path, content);
         }

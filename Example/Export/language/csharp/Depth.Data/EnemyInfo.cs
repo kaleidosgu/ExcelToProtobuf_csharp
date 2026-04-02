@@ -24,16 +24,18 @@ namespace Depth.Data {
     static EnemyInfoReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg9FbmVteUluZm8ucHJvdG8SCkhpUHJvdG9idWYaDENvbW1vbi5wcm90byJc",
-            "CglFbmVteUluZm8SCgoCSUQYASABKA0SIwoETmFtZRgCIAEoCzIVLkhpUHJv",
-            "dG9idWYuRGVwdGhUZXh0EhAKCFJvb3RQYXRoGAMgASgJEgwKBFBhdGgYBCAB",
-            "KAkiNgoPRXhjZWxfRW5lbXlJbmZvEiMKBERhdGEYASADKAsyFS5IaVByb3Rv",
-            "YnVmLkVuZW15SW5mb0I9Chljb20uSGlQcm90b2J1Zi5IaVByb3RvYnVmQhNF",
-            "bmVteUluZm9fY2xhc3NuYW1lqgIKRGVwdGguRGF0YWIGcHJvdG8z"));
+            "Cg9FbmVteUluZm8ucHJvdG8SCkhpUHJvdG9idWYaDENvbW1vbi5wcm90byKi",
+            "AQoJRW5lbXlJbmZvEgoKAklEGAEgASgNEiMKBE5hbWUYAiABKAsyFS5IaVBy",
+            "b3RvYnVmLkRlcHRoVGV4dBIQCghSb290UGF0aBgDIAEoCRIMCgRQYXRoGAQg",
+            "ASgJEiEKBHBvczEYBSABKAsyEy5IaVByb3RvYnVmLlZlY3RvcjISIQoEcG9z",
+            "MhgGIAEoCzITLkhpUHJvdG9idWYuVmVjdG9yMyI2Cg9FeGNlbF9FbmVteUlu",
+            "Zm8SIwoERGF0YRgBIAMoCzIVLkhpUHJvdG9idWYuRW5lbXlJbmZvQj0KGWNv",
+            "bS5IaVByb3RvYnVmLkhpUHJvdG9idWZCE0VuZW15SW5mb19jbGFzc25hbWWq",
+            "AgpEZXB0aC5EYXRhYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Depth.Localize.CommonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.EnemyInfo), global::Depth.Data.EnemyInfo.Parser, new[]{ "ID", "Name", "RootPath", "Path" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.EnemyInfo), global::Depth.Data.EnemyInfo.Parser, new[]{ "ID", "Name", "RootPath", "Path", "Pos1", "Pos2" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.Excel_EnemyInfo), global::Depth.Data.Excel_EnemyInfo.Parser, new[]{ "Data" }, null, null, null)
           }));
     }
@@ -70,6 +72,8 @@ namespace Depth.Data {
       name_ = other.name_ != null ? other.name_.Clone() : null;
       rootPath_ = other.rootPath_;
       path_ = other.path_;
+      pos1_ = other.pos1_ != null ? other.pos1_.Clone() : null;
+      pos2_ = other.pos2_ != null ? other.pos2_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -122,6 +126,28 @@ namespace Depth.Data {
       }
     }
 
+    /// <summary>Field number for the "pos1" field.</summary>
+    public const int Pos1FieldNumber = 5;
+    private global::Depth.Localize.Vector2 pos1_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Depth.Localize.Vector2 Pos1 {
+      get { return pos1_; }
+      set {
+        pos1_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "pos2" field.</summary>
+    public const int Pos2FieldNumber = 6;
+    private global::Depth.Localize.Vector3 pos2_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Depth.Localize.Vector3 Pos2 {
+      get { return pos2_; }
+      set {
+        pos2_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as EnemyInfo);
@@ -139,6 +165,8 @@ namespace Depth.Data {
       if (!object.Equals(Name, other.Name)) return false;
       if (RootPath != other.RootPath) return false;
       if (Path != other.Path) return false;
+      if (!object.Equals(Pos1, other.Pos1)) return false;
+      if (!object.Equals(Pos2, other.Pos2)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -149,6 +177,8 @@ namespace Depth.Data {
       if (name_ != null) hash ^= Name.GetHashCode();
       if (RootPath.Length != 0) hash ^= RootPath.GetHashCode();
       if (Path.Length != 0) hash ^= Path.GetHashCode();
+      if (pos1_ != null) hash ^= Pos1.GetHashCode();
+      if (pos2_ != null) hash ^= Pos2.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -178,6 +208,14 @@ namespace Depth.Data {
         output.WriteRawTag(34);
         output.WriteString(Path);
       }
+      if (pos1_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Pos1);
+      }
+      if (pos2_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Pos2);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -197,6 +235,12 @@ namespace Depth.Data {
       }
       if (Path.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Path);
+      }
+      if (pos1_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Pos1);
+      }
+      if (pos2_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Pos2);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -223,6 +267,18 @@ namespace Depth.Data {
       }
       if (other.Path.Length != 0) {
         Path = other.Path;
+      }
+      if (other.pos1_ != null) {
+        if (pos1_ == null) {
+          Pos1 = new global::Depth.Localize.Vector2();
+        }
+        Pos1.MergeFrom(other.Pos1);
+      }
+      if (other.pos2_ != null) {
+        if (pos2_ == null) {
+          Pos2 = new global::Depth.Localize.Vector3();
+        }
+        Pos2.MergeFrom(other.Pos2);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -252,6 +308,20 @@ namespace Depth.Data {
           }
           case 34: {
             Path = input.ReadString();
+            break;
+          }
+          case 42: {
+            if (pos1_ == null) {
+              Pos1 = new global::Depth.Localize.Vector2();
+            }
+            input.ReadMessage(Pos1);
+            break;
+          }
+          case 50: {
+            if (pos2_ == null) {
+              Pos2 = new global::Depth.Localize.Vector3();
+            }
+            input.ReadMessage(Pos2);
             break;
           }
         }

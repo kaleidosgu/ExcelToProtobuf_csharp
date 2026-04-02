@@ -160,6 +160,10 @@ namespace HiProtobuf.Lib
                                     idProp.SetValue(depthText, value);
                                     insField.SetValue(ins, depthText);
                                 }
+                                else if (variableType == Common.vector2_ || variableType == Common.vector3_)
+                                {
+                                    insField.SetValue(ins, value);
+                                }
                                 else
                                 {
                                     insField.SetValue(ins, value);
@@ -262,6 +266,83 @@ namespace HiProtobuf.Lib
                 return isEmpty ? ByteString.CopyFromUtf8(string.Empty) : ByteString.CopyFromUtf8(value.ToString());
             if (type == Common.text_)
                 return isEmpty ? 0 : uint.Parse(GetTextKey(value));
+            if (type == Common.vector2_)
+            {
+                var vector2Type = _assembly.GetType("Depth.Core.Vector2");
+                if (vector2Type == null)
+                {
+                    foreach (var t in _assembly.GetTypes())
+                    {
+                        if (t.Name == "Vector2")
+                        {
+                            vector2Type = t;
+                            break;
+                        }
+                    }
+                }
+                if (vector2Type == null)
+                {
+                    Log.Error($"Cannot find Vector2 type in assembly");
+                    return null;
+                }
+                var vector2 = Activator.CreateInstance(vector2Type);
+                if (!isEmpty)
+                {
+                    var parts = value.Split(';');
+                    if (parts.Length >= 1)
+                    {
+                        var xProp = vector2Type.GetProperty("X");
+                        xProp.SetValue(vector2, float.Parse(parts[0]));
+                    }
+                    if (parts.Length >= 2)
+                    {
+                        var yProp = vector2Type.GetProperty("Y");
+                        yProp.SetValue(vector2, float.Parse(parts[1]));
+                    }
+                }
+                return vector2;
+            }
+            if (type == Common.vector3_)
+            {
+                var vector3Type = _assembly.GetType("Depth.Core.Vector3");
+                if (vector3Type == null)
+                {
+                    foreach (var t in _assembly.GetTypes())
+                    {
+                        if (t.Name == "Vector3")
+                        {
+                            vector3Type = t;
+                            break;
+                        }
+                    }
+                }
+                if (vector3Type == null)
+                {
+                    Log.Error($"Cannot find Vector3 type in assembly");
+                    return null;
+                }
+                var vector3 = Activator.CreateInstance(vector3Type);
+                if (!isEmpty)
+                {
+                    var parts = value.Split(';');
+                    if (parts.Length >= 1)
+                    {
+                        var xProp = vector3Type.GetProperty("X");
+                        xProp.SetValue(vector3, float.Parse(parts[0]));
+                    }
+                    if (parts.Length >= 2)
+                    {
+                        var yProp = vector3Type.GetProperty("Y");
+                        yProp.SetValue(vector3, float.Parse(parts[1]));
+                    }
+                    if (parts.Length >= 3)
+                    {
+                        var zProp = vector3Type.GetProperty("Z");
+                        zProp.SetValue(vector3, float.Parse(parts[2]));
+                    }
+                }
+                return vector3;
+            }
             if (type == Common.double_s)
             {
                 RepeatedField<double> newValue = new RepeatedField<double>();
