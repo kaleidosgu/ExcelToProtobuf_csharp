@@ -18,6 +18,7 @@ option csharp_namespace = "Depth.Data";
 
 import "Common.proto";
 
+
 message EnemyInfoTest {
   uint32 ID = 1;
   string Name = 2;

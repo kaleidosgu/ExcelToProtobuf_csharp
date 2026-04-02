@@ -24,16 +24,16 @@ namespace Depth.Data {
     static EnemyInfoReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg9FbmVteUluZm8ucHJvdG8SCkhpUHJvdG9idWYaDENvbW1vbi5wcm90byKi",
-            "AQoJRW5lbXlJbmZvEgoKAklEGAEgASgNEiMKBE5hbWUYAiABKAsyFS5IaVBy",
-            "b3RvYnVmLkRlcHRoVGV4dBIQCghSb290UGF0aBgDIAEoCRIMCgRQYXRoGAQg",
-            "ASgJEiEKBHBvczEYBSABKAsyEy5IaVByb3RvYnVmLlZlY3RvcjISIQoEcG9z",
-            "MhgGIAEoCzITLkhpUHJvdG9idWYuVmVjdG9yMyI2Cg9FeGNlbF9FbmVteUlu",
-            "Zm8SIwoERGF0YRgBIAMoCzIVLkhpUHJvdG9idWYuRW5lbXlJbmZvQj0KGWNv",
-            "bS5IaVByb3RvYnVmLkhpUHJvdG9idWZCE0VuZW15SW5mb19jbGFzc25hbWWq",
-            "AgpEZXB0aC5EYXRhYgZwcm90bzM="));
+            "Cg9FbmVteUluZm8ucHJvdG8SCkhpUHJvdG9idWYaDENvbW1vbi5wcm90bxoM",
+            "VmVjdG9yLnByb3RvIqIBCglFbmVteUluZm8SCgoCSUQYASABKA0SIwoETmFt",
+            "ZRgCIAEoCzIVLkhpUHJvdG9idWYuRGVwdGhUZXh0EhAKCFJvb3RQYXRoGAMg",
+            "ASgJEgwKBFBhdGgYBCABKAkSIQoEcG9zMRgFIAEoCzITLkhpUHJvdG9idWYu",
+            "VmVjdG9yMhIhCgRwb3MyGAYgASgLMhMuSGlQcm90b2J1Zi5WZWN0b3IzIjYK",
+            "D0V4Y2VsX0VuZW15SW5mbxIjCgREYXRhGAEgAygLMhUuSGlQcm90b2J1Zi5F",
+            "bmVteUluZm9CPQoZY29tLkhpUHJvdG9idWYuSGlQcm90b2J1ZkITRW5lbXlJ",
+            "bmZvX2NsYXNzbmFtZaoCCkRlcHRoLkRhdGFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Depth.Localize.CommonReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Depth.Localize.CommonReflection.Descriptor, global::Depth.Core.VectorReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.EnemyInfo), global::Depth.Data.EnemyInfo.Parser, new[]{ "ID", "Name", "RootPath", "Path", "Pos1", "Pos2" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.Excel_EnemyInfo), global::Depth.Data.Excel_EnemyInfo.Parser, new[]{ "Data" }, null, null, null)
@@ -128,9 +128,9 @@ namespace Depth.Data {
 
     /// <summary>Field number for the "pos1" field.</summary>
     public const int Pos1FieldNumber = 5;
-    private global::Depth.Localize.Vector2 pos1_;
+    private global::Depth.Core.Vector2 pos1_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Depth.Localize.Vector2 Pos1 {
+    public global::Depth.Core.Vector2 Pos1 {
       get { return pos1_; }
       set {
         pos1_ = value;
@@ -139,9 +139,9 @@ namespace Depth.Data {
 
     /// <summary>Field number for the "pos2" field.</summary>
     public const int Pos2FieldNumber = 6;
-    private global::Depth.Localize.Vector3 pos2_;
+    private global::Depth.Core.Vector3 pos2_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Depth.Localize.Vector3 Pos2 {
+    public global::Depth.Core.Vector3 Pos2 {
       get { return pos2_; }
       set {
         pos2_ = value;
@@ -270,13 +270,13 @@ namespace Depth.Data {
       }
       if (other.pos1_ != null) {
         if (pos1_ == null) {
-          Pos1 = new global::Depth.Localize.Vector2();
+          Pos1 = new global::Depth.Core.Vector2();
         }
         Pos1.MergeFrom(other.Pos1);
       }
       if (other.pos2_ != null) {
         if (pos2_ == null) {
-          Pos2 = new global::Depth.Localize.Vector3();
+          Pos2 = new global::Depth.Core.Vector3();
         }
         Pos2.MergeFrom(other.Pos2);
       }
@@ -312,14 +312,14 @@ namespace Depth.Data {
           }
           case 42: {
             if (pos1_ == null) {
-              Pos1 = new global::Depth.Localize.Vector2();
+              Pos1 = new global::Depth.Core.Vector2();
             }
             input.ReadMessage(Pos1);
             break;
           }
           case 50: {
             if (pos2_ == null) {
-              Pos2 = new global::Depth.Localize.Vector3();
+              Pos2 = new global::Depth.Core.Vector3();
             }
             input.ReadMessage(Pos2);
             break;

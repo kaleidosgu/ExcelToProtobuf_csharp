@@ -17,6 +17,8 @@ option csharp_namespace = "Depth.Data";
 // [END csharp_declaration]
 
 import "Common.proto";
+import "Vector.proto";
+
 
 message EnemyInfo {
   uint32 ID = 1;

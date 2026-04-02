@@ -56,7 +56,7 @@ namespace HiProtobuf.Lib
             {
                 string protoPath = files[i];
                 string strClassName = Path.GetFileNameWithoutExtension(protoPath);
-                if (strClassName == "Common")
+                if (strClassName == "Common" || strClassName == "Vector")
                 {
                     continue;
                 }
