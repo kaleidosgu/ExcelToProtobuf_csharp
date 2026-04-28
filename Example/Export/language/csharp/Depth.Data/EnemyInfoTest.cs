@@ -25,15 +25,16 @@ namespace Depth.Data {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChNFbmVteUluZm9UZXN0LnByb3RvEgpIaVByb3RvYnVmGgxDb21tb24ucHJv",
-            "dG8iSQoNRW5lbXlJbmZvVGVzdBIKCgJJRBgBIAEoDRIMCgROYW1lGAIgASgJ",
-            "EhAKCFJvb3RQYXRoGAMgASgJEgwKBFBhdGgYBCABKAkiPgoTRXhjZWxfRW5l",
-            "bXlJbmZvVGVzdBInCgREYXRhGAEgAygLMhkuSGlQcm90b2J1Zi5FbmVteUlu",
-            "Zm9UZXN0QkEKGWNvbS5IaVByb3RvYnVmLkhpUHJvdG9idWZCF0VuZW15SW5m",
-            "b1Rlc3RfY2xhc3NuYW1lqgIKRGVwdGguRGF0YWIGcHJvdG8z"));
+            "dG8ibgoNRW5lbXlJbmZvVGVzdBIKCgJJRBgBIAEoDRIMCgROYW1lGAIgASgJ",
+            "EhAKCFJvb3RQYXRoGAMgASgJEgwKBFBhdGgYBCABKAkSIwoERGVzYxgFIAEo",
+            "CzIVLkhpUHJvdG9idWYuRGVwdGhUZXh0Ij4KE0V4Y2VsX0VuZW15SW5mb1Rl",
+            "c3QSJwoERGF0YRgBIAMoCzIZLkhpUHJvdG9idWYuRW5lbXlJbmZvVGVzdEJB",
+            "Chljb20uSGlQcm90b2J1Zi5IaVByb3RvYnVmQhdFbmVteUluZm9UZXN0X2Ns",
+            "YXNzbmFtZaoCCkRlcHRoLkRhdGFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Depth.Localize.CommonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.EnemyInfoTest), global::Depth.Data.EnemyInfoTest.Parser, new[]{ "ID", "Name", "RootPath", "Path" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.EnemyInfoTest), global::Depth.Data.EnemyInfoTest.Parser, new[]{ "ID", "Name", "RootPath", "Path", "Desc" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Depth.Data.Excel_EnemyInfoTest), global::Depth.Data.Excel_EnemyInfoTest.Parser, new[]{ "Data" }, null, null, null)
           }));
     }
@@ -70,6 +71,7 @@ namespace Depth.Data {
       name_ = other.name_;
       rootPath_ = other.rootPath_;
       path_ = other.path_;
+      desc_ = other.desc_ != null ? other.desc_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -122,6 +124,17 @@ namespace Depth.Data {
       }
     }
 
+    /// <summary>Field number for the "Desc" field.</summary>
+    public const int DescFieldNumber = 5;
+    private global::Depth.Localize.DepthText desc_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Depth.Localize.DepthText Desc {
+      get { return desc_; }
+      set {
+        desc_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as EnemyInfoTest);
@@ -139,6 +152,7 @@ namespace Depth.Data {
       if (Name != other.Name) return false;
       if (RootPath != other.RootPath) return false;
       if (Path != other.Path) return false;
+      if (!object.Equals(Desc, other.Desc)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -149,6 +163,7 @@ namespace Depth.Data {
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       if (RootPath.Length != 0) hash ^= RootPath.GetHashCode();
       if (Path.Length != 0) hash ^= Path.GetHashCode();
+      if (desc_ != null) hash ^= Desc.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -178,6 +193,10 @@ namespace Depth.Data {
         output.WriteRawTag(34);
         output.WriteString(Path);
       }
+      if (desc_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Desc);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -197,6 +216,9 @@ namespace Depth.Data {
       }
       if (Path.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Path);
+      }
+      if (desc_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Desc);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -220,6 +242,12 @@ namespace Depth.Data {
       }
       if (other.Path.Length != 0) {
         Path = other.Path;
+      }
+      if (other.desc_ != null) {
+        if (desc_ == null) {
+          Desc = new global::Depth.Localize.DepthText();
+        }
+        Desc.MergeFrom(other.Desc);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -246,6 +274,13 @@ namespace Depth.Data {
           }
           case 34: {
             Path = input.ReadString();
+            break;
+          }
+          case 42: {
+            if (desc_ == null) {
+              Desc = new global::Depth.Localize.DepthText();
+            }
+            input.ReadMessage(Desc);
             break;
           }
         }

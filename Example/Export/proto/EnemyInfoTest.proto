@@ -24,6 +24,7 @@ message EnemyInfoTest {
   string Name = 2;
   string RootPath = 3;
   string Path = 4;
+  DepthText Desc = 5;
 }
 
 message Excel_EnemyInfoTest

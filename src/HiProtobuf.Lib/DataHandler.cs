@@ -11,6 +11,7 @@ using HiFramework.Assert;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Reflection;
 using OfficeOpenXml;
 using HiFramework.Log;
@@ -37,10 +38,7 @@ namespace HiProtobuf.Lib
             Directory.CreateDirectory(folder);
 
             var locFolder = Settings.Export_Folder + Settings.localization_folder;
-            if (Directory.Exists(locFolder))
-            {
-                Directory.Delete(locFolder, true);
-            }
+            // Don't delete localization folder to preserve existing localization.json
             Directory.CreateDirectory(locFolder);
         }
 
@@ -50,6 +48,10 @@ namespace HiProtobuf.Lib
             // Load into memory to avoid locking the DLL file, so the folder can be deleted next run
             var dllBytes = File.ReadAllBytes(dllPath);
             _assembly = Assembly.Load(dllBytes);
+            
+            // Load existing localization data before processing
+            LoadLocalization();
+            
             var protoFolder = Settings.Export_Folder + Settings.proto_folder;
             string[] files = Directory.GetFiles(protoFolder, "*.proto", SearchOption.AllDirectories);
             for (int i = 0; i < files.Length; i++)
@@ -225,6 +227,71 @@ namespace HiProtobuf.Lib
                         .Replace("\r", "\\r")
                         .Replace("\t", "\\t");
         }
+
+        private string UnescapeJsonString(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (input[i] == '\\' && i + 1 < input.Length)
+                {
+                    switch (input[i + 1])
+                    {
+                        case 'n': sb.Append('\n'); i++; break;
+                        case 'r': sb.Append('\r'); i++; break;
+                        case 't': sb.Append('\t'); i++; break;
+                        case '\\': sb.Append('\\'); i++; break;
+                        case '"': sb.Append('"'); i++; break;
+                        default: sb.Append(input[i]); break;
+                    }
+                }
+                else
+                {
+                    sb.Append(input[i]);
+                }
+            }
+            return sb.ToString();
+        }
+
+        private void LoadLocalization()
+        {
+            var path = Settings.Export_Folder + Settings.localization_folder + "/localization.json";
+            if (!File.Exists(path))
+            {
+                Log.Info("No existing localization.json found, starting fresh.");
+                return;
+            }
+
+            try
+            {
+                var content = File.ReadAllText(path);
+                var pattern = @"""([^""\\]*(?:\\.[^""\\]*)*)""\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""";
+                var matches = Regex.Matches(content, pattern);
+                int maxKey = 99999;
+                foreach (Match match in matches)
+                {
+                    var key = UnescapeJsonString(match.Groups[1].Value);
+                    var value = UnescapeJsonString(match.Groups[2].Value);
+                    _textKeyToValue[key] = value;
+                    _textValueToKey[value] = key;
+                    if (int.TryParse(key, out int keyInt))
+                    {
+                        if (keyInt > maxKey)
+                        {
+                            maxKey = keyInt;
+                        }
+                    }
+                }
+                _textKeyCounter = maxKey + 1;
+                Log.Info($"Loaded {matches.Count} localization entries from {path}. Next key: {_textKeyCounter}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to load localization.json: {ex.Message}");
+            }
+        }
+
         // ... existing code ...
 
         object GetVariableValue(string type, string value)
