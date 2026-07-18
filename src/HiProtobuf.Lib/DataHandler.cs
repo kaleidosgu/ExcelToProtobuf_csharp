@@ -16,6 +16,7 @@ using System.Reflection;
 using OfficeOpenXml;
 using HiFramework.Log;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace HiProtobuf.Lib
 {
@@ -74,6 +75,7 @@ namespace HiProtobuf.Lib
                 string excelPath = Settings.Excel_Folder + "/" + strNameSpace + ".xlsx";
                 ProcessData(excelPath, strNameSpace, strClassName);
             }
+            ExportLocalization();
         }
 
         // ... existing code ...
@@ -177,7 +179,6 @@ namespace HiProtobuf.Lib
                     Serialize(_excelIns);
                 }
             }
-            ExportLocalization();
         }
 
         private string GetTextKey(string value)
@@ -214,8 +215,32 @@ namespace HiProtobuf.Lib
                 sb.AppendLine($"  \"{key}\": \"{value}\"{(count < _textKeyToValue.Count ? "," : "")}");
             }
             sb.AppendLine("}");
-            File.WriteAllText(path, sb.ToString());
+            WriteAllTextWithRetry(path, sb.ToString());
             Log.Info($"Localization file generated: {path}");
+        }
+
+        private void WriteAllTextWithRetry(string path, string contents)
+        {
+            const int maxRetryCount = 5;
+            const int retryDelayMilliseconds = 200;
+
+            for (int i = 0; i < maxRetryCount; i++)
+            {
+                try
+                {
+                    File.WriteAllText(path, contents);
+                    return;
+                }
+                catch (IOException ex)
+                {
+                    if (i == maxRetryCount - 1)
+                    {
+                        Log.Error($"Failed to write localization file: {path}. {ex.Message}");
+                        throw;
+                    }
+                    Thread.Sleep(retryDelayMilliseconds);
+                }
+            }
         }
 
         private string EscapeJsonString(string input)
