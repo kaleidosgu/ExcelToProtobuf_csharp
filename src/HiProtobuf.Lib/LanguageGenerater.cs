@@ -183,10 +183,10 @@ namespace HiProtobuf.Lib
                     {
                         // 先将所有 CRLF 统一为 LF，然后再将所有 LF 转换为 CRLF
                         // 这样可以确保所有换行符都是 CRLF
-                        content = content.Replace("\r\n", "\n").Replace("\n", "\r\n");
+                        content = content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
 
-                        // 写回文件，使用 UTF-8 编码
-                        File.WriteAllText(filePath, content, System.Text.Encoding.UTF8);
+                        // 写回文件，使用无 BOM 的 UTF-8 编码
+                        File.WriteAllText(filePath, content, new System.Text.UTF8Encoding(false));
                     }
                 }
                 catch
