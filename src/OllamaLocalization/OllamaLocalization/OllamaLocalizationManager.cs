@@ -49,26 +49,72 @@ namespace OllamaLocalization
                 WriteOutput(targetFile, sourceFilePath, _config.SourceLanguage, sourceRoot);
             }
 
+            var translatedRoots = new Dictionary<string, JToken>(StringComparer.OrdinalIgnoreCase)
+            {
+                [_config.SourceLanguage] = sourceRoot
+            };
+            var completedLanguages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                _config.SourceLanguage
+            };
+
             foreach (string targetLanguage in GetTargetLanguages())
             {
-                if (string.Equals(targetLanguage, _config.SourceLanguage, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                Console.WriteLine("Translating " + _config.SourceLanguage + " -> " + targetLanguage);
-                JToken translatedRoot = sourceRoot.DeepClone();
-                TranslateJsonToken(translatedRoot, targetLanguage);
-                WriteOutput(targetFile, sourceFilePath, targetLanguage, translatedRoot);
+                EnsureLanguageOutput(targetFile, sourceFilePath, targetLanguage, translatedRoots, completedLanguages, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
             }
         }
 
-        private void TranslateJsonToken(JToken token, string targetLanguage)
+        private JToken EnsureLanguageOutput(
+            LocalizationTargetFile targetFile,
+            string sourceFilePath,
+            string targetLanguage,
+            IDictionary<string, JToken> translatedRoots,
+            ISet<string> completedLanguages,
+            ISet<string> visitingLanguages)
+        {
+            if (translatedRoots.ContainsKey(targetLanguage))
+            {
+                return translatedRoots[targetLanguage];
+            }
+
+            if (completedLanguages.Contains(targetLanguage))
+            {
+                string outputPath = GetOutputPath(targetFile, sourceFilePath, targetLanguage);
+                JToken existingRoot = JToken.Parse(File.ReadAllText(outputPath, Encoding.UTF8));
+                translatedRoots[targetLanguage] = existingRoot;
+                return existingRoot;
+            }
+
+            if (!visitingLanguages.Add(targetLanguage))
+            {
+                throw new Exception("Circular language dependency detected: " + string.Join(" -> ", visitingLanguages) + " -> " + targetLanguage);
+            }
+
+            string sourceLanguage = GetSourceLanguageForTarget(targetLanguage);
+            if (string.Equals(sourceLanguage, targetLanguage, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new Exception("Language " + targetLanguage + " cannot use itself as translation source.");
+            }
+
+            JToken sourceRoot = EnsureLanguageOutput(targetFile, sourceFilePath, sourceLanguage, translatedRoots, completedLanguages, visitingLanguages);
+
+            Console.WriteLine("Translating " + sourceLanguage + " -> " + targetLanguage);
+            JToken translatedRoot = sourceRoot.DeepClone();
+            TranslateJsonToken(translatedRoot, sourceLanguage, targetLanguage);
+            WriteOutput(targetFile, sourceFilePath, targetLanguage, translatedRoot);
+
+            translatedRoots[targetLanguage] = translatedRoot;
+            completedLanguages.Add(targetLanguage);
+            visitingLanguages.Remove(targetLanguage);
+            return translatedRoot;
+        }
+
+        private void TranslateJsonToken(JToken token, string sourceLanguage, string targetLanguage)
         {
             var stringValues = new List<JValue>();
             CollectStringValues(token, stringValues);
 
-            var memory = CreateMemory(targetLanguage);
+            var memory = CreateMemory(sourceLanguage, targetLanguage);
             var sourceTextsByValue = stringValues.Select(value => value.Value<string>()).ToList();
             var translatedMap = new Dictionary<string, string>();
             var missingTexts = new List<string>();
@@ -96,7 +142,7 @@ namespace OllamaLocalization
             int translatedCount = 0;
             foreach (IList<string> batch in SplitBatches(missingTexts, GetBatchSize()))
             {
-                IList<string> translatedTexts = TranslateBatchWithFallback(batch, targetLanguage);
+                IList<string> translatedTexts = TranslateBatchWithFallback(batch, sourceLanguage, targetLanguage);
                 for (int i = 0; i < batch.Count; i++)
                 {
                     translatedMap[batch[i]] = translatedTexts[i];
@@ -126,11 +172,11 @@ namespace OllamaLocalization
             }
         }
 
-        private IList<string> TranslateBatchWithFallback(IList<string> texts, string targetLanguage)
+        private IList<string> TranslateBatchWithFallback(IList<string> texts, string sourceLanguage, string targetLanguage)
         {
             try
             {
-                return _client.TranslateBatch(texts, _config.SourceLanguage, targetLanguage);
+                return _client.TranslateBatch(texts, sourceLanguage, targetLanguage);
             }
             catch (Exception ex)
             {
@@ -144,13 +190,13 @@ namespace OllamaLocalization
                 IList<string> second = texts.Skip(firstCount).ToList();
 
                 Console.WriteLine("  Batch failed, split " + texts.Count + " into " + first.Count + "+" + second.Count + ": " + ex.Message);
-                return TranslateBatchWithFallback(first, targetLanguage)
-                    .Concat(TranslateBatchWithFallback(second, targetLanguage))
+                return TranslateBatchWithFallback(first, sourceLanguage, targetLanguage)
+                    .Concat(TranslateBatchWithFallback(second, sourceLanguage, targetLanguage))
                     .ToList();
             }
         }
 
-        private TranslationMemory CreateMemory(string targetLanguage)
+        private TranslationMemory CreateMemory(string sourceLanguage, string targetLanguage)
         {
             TranslationMemoryOptions options = _config.TranslationMemory;
             if (options == null || !options.Enabled)
@@ -160,7 +206,7 @@ namespace OllamaLocalization
 
             string directory = string.IsNullOrWhiteSpace(options.Directory) ? "translation-memory" : options.Directory;
             string memoryDirectory = ResolvePath(directory);
-            string fileName = SanitizeFileName(_config.SourceLanguage) + "_to_" + SanitizeFileName(targetLanguage) + ".json";
+            string fileName = SanitizeFileName(sourceLanguage) + "_to_" + SanitizeFileName(targetLanguage) + ".json";
             return new TranslationMemory(Path.Combine(memoryDirectory, fileName), options.SaveIndented);
         }
 
@@ -191,15 +237,23 @@ namespace OllamaLocalization
 
         private void WriteOutput(LocalizationTargetFile targetFile, string sourceFilePath, string language, JToken root)
         {
-            string outputRootDirectory = string.IsNullOrWhiteSpace(targetFile.OutputDirectory)
-                ? Path.GetDirectoryName(sourceFilePath)
-                : ResolvePath(targetFile.OutputDirectory);
-            string outputDirectory = Path.Combine(outputRootDirectory, SanitizeFileName(language));
-
+            string outputPath = GetOutputPath(targetFile, sourceFilePath, language);
+            string outputDirectory = Path.GetDirectoryName(outputPath);
             if (!Directory.Exists(outputDirectory))
             {
                 Directory.CreateDirectory(outputDirectory);
             }
+
+            File.WriteAllText(outputPath, root.ToString(Formatting.Indented), Encoding.UTF8);
+            Console.WriteLine("  Saved: " + outputPath);
+        }
+
+        private string GetOutputPath(LocalizationTargetFile targetFile, string sourceFilePath, string language)
+        {
+            string outputRootDirectory = string.IsNullOrWhiteSpace(targetFile.OutputDirectory)
+                ? Path.GetDirectoryName(sourceFilePath)
+                : ResolvePath(targetFile.OutputDirectory);
+            string outputDirectory = Path.Combine(outputRootDirectory, SanitizeFileName(language));
 
             string sourceName = Path.GetFileNameWithoutExtension(sourceFilePath);
             string extension = Path.GetExtension(sourceFilePath);
@@ -212,14 +266,16 @@ namespace OllamaLocalization
                 .Replace("{language}", language)
                 .Replace("{ext}", extension);
 
-            string outputPath = Path.Combine(outputDirectory, fileName);
-            File.WriteAllText(outputPath, root.ToString(Formatting.Indented), Encoding.UTF8);
-            Console.WriteLine("  Saved: " + outputPath);
+            return Path.Combine(outputDirectory, fileName);
         }
 
         private void ValidateConfig()
         {
             RequireText(_config.SourceLanguage, "SourceLanguage");
+            if (string.IsNullOrWhiteSpace(_config.DefaultTranslationSourceLanguage))
+            {
+                _config.DefaultTranslationSourceLanguage = _config.SourceLanguage;
+            }
 
             if (GetTargetLanguages().Count == 0)
             {
@@ -258,6 +314,28 @@ namespace OllamaLocalization
             }
 
             return Path.GetFullPath(Path.Combine(_configDirectory, path));
+        }
+
+        private string GetSourceLanguageForTarget(string targetLanguage)
+        {
+            if (_config.LanguageSourceLanguages != null)
+            {
+                string sourceLanguage;
+                if (_config.LanguageSourceLanguages.TryGetValue(targetLanguage, out sourceLanguage) && !string.IsNullOrWhiteSpace(sourceLanguage))
+                {
+                    return sourceLanguage;
+                }
+
+                foreach (KeyValuePair<string, string> item in _config.LanguageSourceLanguages)
+                {
+                    if (string.Equals(item.Key, targetLanguage, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(item.Value))
+                    {
+                        return item.Value;
+                    }
+                }
+            }
+
+            return _config.DefaultTranslationSourceLanguage;
         }
 
         private int GetBatchSize()

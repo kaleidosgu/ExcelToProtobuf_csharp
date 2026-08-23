@@ -5,6 +5,8 @@ namespace OllamaLocalization
     public class OllamaLocalizationConfig
     {
         public string SourceLanguage { get; set; }
+        public string DefaultTranslationSourceLanguage { get; set; }
+        public Dictionary<string, string> LanguageSourceLanguages { get; set; }
         public List<string> TargetLanguages { get; set; }
         public List<string> SupportedLanguages { get; set; }
         public OllamaOptions Ollama { get; set; }
