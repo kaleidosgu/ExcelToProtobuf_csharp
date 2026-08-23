@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localize", "Localize\Locali
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleLocalization", "GoogleLocalization\GoogleLocalization\GoogleLocalization.csproj", "{D8D5932C-6A0E-4425-9403-9DF40DF60A92}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OllamaLocalization", "OllamaLocalization\OllamaLocalization\OllamaLocalization.csproj", "{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{D8D5932C-6A0E-4425-9403-9DF40DF60A92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8D5932C-6A0E-4425-9403-9DF40DF60A92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8D5932C-6A0E-4425-9403-9DF40DF60A92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

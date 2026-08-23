@@ -8,3 +8,4 @@ src/HiProtobuf.Test/bin
 src/HiProtobuf.UI/bin
 src/GoogleLocalization/GoogleLocalization/obj/Debug
 src/Localize/Localize/obj
+src/OllamaLocalization/OllamaLocalization/obj/Debug
