@@ -6,3 +6,5 @@
 src/HiProtobuf.Lib/bin
 src/HiProtobuf.Test/bin
 src/HiProtobuf.UI/bin
+src/GoogleLocalization/GoogleLocalization/obj/Debug
+src/Localize/Localize/obj
