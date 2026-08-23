@@ -19,6 +19,7 @@ namespace OllamaLocalization
         public int TimeoutSeconds { get; set; }
         public int BatchSize { get; set; }
         public int MaxRetries { get; set; }
+        public int NumPredict { get; set; }
         public double Temperature { get; set; }
         public double TopP { get; set; }
         public string SystemPrompt { get; set; }

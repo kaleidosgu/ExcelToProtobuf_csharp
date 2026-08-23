@@ -96,7 +96,7 @@ namespace OllamaLocalization
             int translatedCount = 0;
             foreach (IList<string> batch in SplitBatches(missingTexts, GetBatchSize()))
             {
-                IList<string> translatedTexts = _client.TranslateBatch(batch, _config.SourceLanguage, targetLanguage);
+                IList<string> translatedTexts = TranslateBatchWithFallback(batch, targetLanguage);
                 for (int i = 0; i < batch.Count; i++)
                 {
                     translatedMap[batch[i]] = translatedTexts[i];
@@ -123,6 +123,30 @@ namespace OllamaLocalization
                 {
                     stringValues[i].Value = translatedText;
                 }
+            }
+        }
+
+        private IList<string> TranslateBatchWithFallback(IList<string> texts, string targetLanguage)
+        {
+            try
+            {
+                return _client.TranslateBatch(texts, _config.SourceLanguage, targetLanguage);
+            }
+            catch (Exception ex)
+            {
+                if (texts.Count <= 1)
+                {
+                    throw new Exception("Ollama failed to translate source text: " + texts[0], ex);
+                }
+
+                int firstCount = texts.Count / 2;
+                IList<string> first = texts.Take(firstCount).ToList();
+                IList<string> second = texts.Skip(firstCount).ToList();
+
+                Console.WriteLine("  Batch failed, split " + texts.Count + " into " + first.Count + "+" + second.Count + ": " + ex.Message);
+                return TranslateBatchWithFallback(first, targetLanguage)
+                    .Concat(TranslateBatchWithFallback(second, targetLanguage))
+                    .ToList();
             }
         }
 
@@ -167,9 +191,10 @@ namespace OllamaLocalization
 
         private void WriteOutput(LocalizationTargetFile targetFile, string sourceFilePath, string language, JToken root)
         {
-            string outputDirectory = string.IsNullOrWhiteSpace(targetFile.OutputDirectory)
+            string outputRootDirectory = string.IsNullOrWhiteSpace(targetFile.OutputDirectory)
                 ? Path.GetDirectoryName(sourceFilePath)
                 : ResolvePath(targetFile.OutputDirectory);
+            string outputDirectory = Path.Combine(outputRootDirectory, SanitizeFileName(language));
 
             if (!Directory.Exists(outputDirectory))
             {
@@ -179,7 +204,7 @@ namespace OllamaLocalization
             string sourceName = Path.GetFileNameWithoutExtension(sourceFilePath);
             string extension = Path.GetExtension(sourceFilePath);
             string pattern = string.IsNullOrWhiteSpace(targetFile.OutputFileNamePattern)
-                ? "{name}.{language}{ext}"
+                ? "{name}{ext}"
                 : targetFile.OutputFileNamePattern;
 
             string fileName = pattern

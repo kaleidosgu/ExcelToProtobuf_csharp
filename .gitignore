@@ -9,3 +9,5 @@ src/HiProtobuf.UI/bin
 src/GoogleLocalization/GoogleLocalization/obj/Debug
 src/Localize/Localize/obj
 src/OllamaLocalization/OllamaLocalization/obj/Debug
+src/GoogleLocalization/GoogleLocalization/obj/Release
+src/OllamaLocalization/OllamaLocalization/obj/Release

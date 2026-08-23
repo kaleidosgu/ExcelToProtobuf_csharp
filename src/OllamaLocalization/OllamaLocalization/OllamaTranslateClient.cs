@@ -37,6 +37,11 @@ namespace OllamaLocalization
             {
                 _options.MaxRetries = 2;
             }
+
+            if (_options.NumPredict <= 0)
+            {
+                _options.NumPredict = 4096;
+            }
         }
 
         public IList<string> TranslateBatch(IList<string> texts, string sourceLanguage, string targetLanguage)
@@ -142,6 +147,11 @@ namespace OllamaLocalization
             if (_options.TopP > 0)
             {
                 options["top_p"] = _options.TopP;
+            }
+
+            if (_options.NumPredict > 0)
+            {
+                options["num_predict"] = _options.NumPredict;
             }
 
             return options;
