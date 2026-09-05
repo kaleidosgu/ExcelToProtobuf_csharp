@@ -21,6 +21,7 @@ using System.Runtime.InteropServices;
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("6bef4405-d34b-45ee-b577-c2f2f0336269")]
+[assembly: InternalsVisibleTo("HiProtobuf.Test")]
 
 // 程序集的版本信息由下列四个值组成: 
 //

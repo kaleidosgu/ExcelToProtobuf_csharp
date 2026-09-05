@@ -6,6 +6,7 @@
  ****************************************************************************/
 
 using HiFramework.Assert;
+using HiFramework.Log;
 using OfficeOpenXml;
 using System.IO;
 using System.Collections.Generic;
@@ -20,9 +21,26 @@ namespace HiProtobuf.Lib
             var path = Settings.Export_Folder + Settings.proto_folder;
             if (Directory.Exists(path))
             {
+                ClearReadOnlyAttributes(path);
                 Directory.Delete(path, true);
             }
             Directory.CreateDirectory(path);
+        }
+
+        private static void ClearReadOnlyAttributes(string directoryPath)
+        {
+            var files = Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                var attributes = File.GetAttributes(file);
+                if ((attributes & FileAttributes.ReadOnly) == 0)
+                {
+                    continue;
+                }
+
+                Log.Warning($"检测到只读文件，正在清除只读属性：{file}");
+                File.SetAttributes(file, attributes & ~FileAttributes.ReadOnly);
+            }
         }
 
         public void Process()

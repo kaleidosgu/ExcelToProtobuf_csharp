@@ -25,9 +25,14 @@ namespace HiProtobuf.Lib
         public const string NameSpace = "Depth.Tmp";
         private Assembly _assembly;
         private object _excelIns;
-        private readonly Dictionary<string, string> _textValueToKey = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _textKeyToValue = new Dictionary<string, string>();
-        private int _textKeyCounter = 100000;
+        private readonly LocalizationRegistry _localizationRegistry = new LocalizationRegistry();
+
+        private sealed class DataSource
+        {
+            public string ExcelPath { get; set; }
+            public string NameSpace { get; set; }
+            public string ClassName { get; set; }
+        }
 
         public DataHandler()
         {
@@ -52,8 +57,21 @@ namespace HiProtobuf.Lib
             
             // Load existing localization data before processing
             LoadLocalization();
-            
+
             var protoFolder = Settings.Export_Folder + Settings.proto_folder;
+            var dataSources = GetDataSources(protoFolder);
+            PrepareLocalization(dataSources);
+
+            foreach (var dataSource in dataSources)
+            {
+                ProcessData(dataSource.ExcelPath, dataSource.NameSpace, dataSource.ClassName);
+            }
+            ExportLocalization();
+        }
+
+        private List<DataSource> GetDataSources(string protoFolder)
+        {
+            var dataSources = new List<DataSource>();
             string[] files = Directory.GetFiles(protoFolder, "*.proto", SearchOption.AllDirectories);
             for (int i = 0; i < files.Length; i++)
             {
@@ -73,9 +91,102 @@ namespace HiProtobuf.Lib
                     Log.Info($"Class {strClassName} not found in ProtoHandler.ClassNamespaceMap, using empty namespace.");
                 }
                 string excelPath = Settings.Excel_Folder + "/" + strNameSpace + ".xlsx";
-                ProcessData(excelPath, strNameSpace, strClassName);
+                dataSources.Add(new DataSource
+                {
+                    ExcelPath = excelPath,
+                    NameSpace = strNameSpace,
+                    ClassName = strClassName
+                });
             }
-            ExportLocalization();
+            return dataSources;
+        }
+
+        private void PrepareLocalization(IEnumerable<DataSource> dataSources)
+        {
+            var currentValues = CollectLocalizationValues(dataSources);
+            var result = _localizationRegistry.Reconcile(currentValues);
+
+            foreach (var change in result.Changes)
+            {
+                if (string.IsNullOrEmpty(change.NewValue))
+                {
+                    Log.Info($"本地化文本已无引用，ID {change.Key} 已置空。原文本：{change.OldValue}");
+                }
+                else
+                {
+                    Log.Info($"复用本地化 ID {change.Key}：{change.OldValue} -> {change.NewValue}");
+                }
+            }
+
+            Log.Info($"本地化整理完成：复用 {result.ReusedCount} 个 ID，新增 {result.AllocatedCount} 个 ID，保留 {result.EmptyCount} 个空闲 ID。");
+        }
+
+        private List<string> CollectLocalizationValues(IEnumerable<DataSource> dataSources)
+        {
+            var values = new List<string>();
+            foreach (var dataSource in dataSources)
+            {
+                AssertThat.IsTrue(File.Exists(dataSource.ExcelPath), "Excel file can not find");
+                var fileInfo = new FileInfo(dataSource.ExcelPath);
+                using (var excelPackage = new ExcelPackage(fileInfo))
+                {
+                    foreach (var worksheet in excelPackage.Workbook.Worksheets)
+                    {
+                        if (!dataSource.ClassName.Equals(worksheet.Name) ||
+                            worksheet.Tables == null ||
+                            worksheet.Tables.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var table = worksheet.Tables[0];
+                        var startRow = table.Address.Start.Row;
+                        var endRow = table.Address.End.Row;
+                        var startCol = table.Address.Start.Column;
+                        var endCol = table.Address.End.Column;
+                        for (int row = startRow + 3; row <= endRow; row++)
+                        {
+                            for (int column = startCol; column <= endCol; column++)
+                            {
+                                var variableType = worksheet.Cells[startRow + 1, column].Value?.ToString();
+                                var variableValue = worksheet.Cells[row, column].Value?.ToString();
+                                AddLocalizationValues(values, variableType, variableValue);
+                            }
+                        }
+                    }
+                }
+            }
+            return values;
+        }
+
+        private static void AddLocalizationValues(ICollection<string> values, string type, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (type == Common.text_)
+            {
+                values.Add(value);
+                return;
+            }
+
+            if (type == Common.text_s)
+            {
+                foreach (var text in SplitTextValues(value))
+                {
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        values.Add(text);
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<string> SplitTextValues(string value)
+        {
+            return value.Trim('"').Split('|');
         }
 
         // ... existing code ...
@@ -183,23 +294,12 @@ namespace HiProtobuf.Lib
 
         private string GetTextKey(string value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return string.Empty;
-            }
-            if (_textValueToKey.TryGetValue(value, out var existingKey))
-            {
-                return existingKey;
-            }
-            var newKey = (_textKeyCounter++).ToString();
-            _textValueToKey[value] = newKey;
-            _textKeyToValue[newKey] = value;
-            return newKey;
+            return _localizationRegistry.GetKey(value);
         }
 
         private void ExportLocalization()
         {
-            if (_textKeyToValue.Count == 0)
+            if (_localizationRegistry.Count == 0)
             {
                 return;
             }
@@ -207,12 +307,12 @@ namespace HiProtobuf.Lib
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("{");
             int count = 0;
-            foreach (var kvp in _textKeyToValue)
+            foreach (var kvp in _localizationRegistry.Entries)
             {
                 count++;
                 var key = EscapeJsonString(kvp.Key);
                 var value = EscapeJsonString(kvp.Value);
-                sb.AppendLine($"  \"{key}\": \"{value}\"{(count < _textKeyToValue.Count ? "," : "")}");
+                sb.AppendLine($"  \"{key}\": \"{value}\"{(count < _localizationRegistry.Count ? "," : "")}");
             }
             sb.AppendLine("}");
             WriteAllTextWithRetry(path, sb.ToString());
@@ -293,23 +393,13 @@ namespace HiProtobuf.Lib
                 var content = File.ReadAllText(path);
                 var pattern = @"""([^""\\]*(?:\\.[^""\\]*)*)""\s*:\s*""([^""\\]*(?:\\.[^""\\]*)*)""";
                 var matches = Regex.Matches(content, pattern);
-                int maxKey = 99999;
                 foreach (Match match in matches)
                 {
                     var key = UnescapeJsonString(match.Groups[1].Value);
                     var value = UnescapeJsonString(match.Groups[2].Value);
-                    _textKeyToValue[key] = value;
-                    _textValueToKey[value] = key;
-                    if (int.TryParse(key, out int keyInt))
-                    {
-                        if (keyInt > maxKey)
-                        {
-                            maxKey = keyInt;
-                        }
-                    }
+                    _localizationRegistry.Load(key, value);
                 }
-                _textKeyCounter = maxKey + 1;
-                Log.Info($"Loaded {matches.Count} localization entries from {path}. Next key: {_textKeyCounter}");
+                Log.Info($"Loaded {matches.Count} localization entries from {path}.");
             }
             catch (Exception ex)
             {
@@ -636,11 +726,9 @@ namespace HiProtobuf.Lib
                 RepeatedField<uint> newValue = new RepeatedField<uint>();
                 if (!isEmpty)
                 {
-                    string data = value.Trim('"');
-                    string[] datas = data.Split('|');
-                    for (int i = 0; i < datas.Length; i++)
+                    foreach (var text in SplitTextValues(value))
                     {
-                        newValue.Add(uint.Parse(GetTextKey(datas[i])));
+                        newValue.Add(uint.Parse(GetTextKey(text)));
                     }
                 }
                 return newValue;
