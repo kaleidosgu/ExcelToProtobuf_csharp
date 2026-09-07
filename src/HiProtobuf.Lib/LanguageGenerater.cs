@@ -55,41 +55,74 @@ namespace HiProtobuf.Lib
         {
             var outFolder = _languageFolder + Settings.csharp_folder;
             Directory.CreateDirectory(outFolder);
-            //递归查询
-            string[] files = Directory.GetFiles(protoPath, "*.proto", SearchOption.AllDirectories);
-            // 先编译所有 proto 文件到同一个输出目录（为了处理 import）
-            var allProtoFiles = string.Join(" ", files.Select(f => Path.GetFileName(f)));
-            var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, outFolder, allProtoFiles);
-            Log.Info($"Proto编译命令(C#): {command}");
-            var log = Common.Cmd(command);
-            Log.Info($"Proto编译结果(C#): {log}");
-            // 按命名空间移动生成的 .cs 文件到子目录
-            var csFiles = Directory.GetFiles(outFolder, "*.cs");
-            foreach (var csFile in csFiles)
+
+            // protoc 固定生成到临时目录。最终文件经过换行转换后只创建一次，
+            // 避免原地截断已被杀毒软件、索引器等进程映射的文件。
+            var stagingFolder = Path.Combine(Path.GetTempPath(), "HiProtobuf", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(stagingFolder);
+            try
             {
-                string content = File.ReadAllText(csFile);
-                string ns = "";
-                var match = Regex.Match(content, @"namespace\s+([a-zA-Z0-9_.]+)");
-                if (match.Success)
+                //递归查询
+                string[] files = Directory.GetFiles(protoPath, "*.proto", SearchOption.AllDirectories);
+                // 先编译所有 proto 文件到同一个输出目录（为了处理 import）
+                var allProtoFiles = string.Join(" ", files.Select(f => Path.GetFileName(f)));
+                var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, stagingFolder, allProtoFiles);
+                Log.Info($"Proto编译命令(C#): {command}");
+                var log = Common.Cmd(command);
+                Log.Info($"Proto编译结果(C#): {log}");
+
+                // 在内存中统一换行符，再按命名空间直接创建最终文件。
+                var csFiles = Directory.GetFiles(stagingFolder, "*.cs", SearchOption.AllDirectories);
+                foreach (var csFile in csFiles)
                 {
-                    ns = match.Groups[1].Value;
-                }
-                if (!string.IsNullOrEmpty(ns))
-                {
-                    var destFolder = Path.Combine(outFolder, ns);
+                    string content = File.ReadAllText(csFile, System.Text.Encoding.UTF8);
+                    string ns = "";
+                    var match = Regex.Match(content, @"namespace\s+([a-zA-Z0-9_.]+)");
+                    if (match.Success)
+                    {
+                        ns = match.Groups[1].Value;
+                    }
+
+                    var destFolder = string.IsNullOrEmpty(ns) ? outFolder : Path.Combine(outFolder, ns);
                     var fileName = Path.GetFileName(csFile);
                     var destFile = Path.Combine(destFolder, fileName);
-                    if (!Directory.Exists(destFolder))
-                    {
-                        Directory.CreateDirectory(destFolder);
-                    }
-                    if (!File.Exists(destFile))
-                    {
-                        File.Move(csFile, destFile);
-                    }
+                    Directory.CreateDirectory(destFolder);
+                    WriteNewUtf8File(destFile, NormalizeLineEndingsToCRLF(content));
                 }
             }
-            ConvertLineEndingsToCRLF(outFolder);
+            finally
+            {
+                TryDeleteStagingFolder(stagingFolder);
+            }
+        }
+
+        internal static string NormalizeLineEndingsToCRLF(string content)
+        {
+            return content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
+        }
+
+        private static void WriteNewUtf8File(string path, string content)
+        {
+            using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(stream, new System.Text.UTF8Encoding(false)))
+            {
+                writer.Write(content);
+            }
+        }
+
+        private static void TryDeleteStagingFolder(string stagingFolder)
+        {
+            try
+            {
+                if (Directory.Exists(stagingFolder))
+                {
+                    Directory.Delete(stagingFolder, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"清理临时生成目录失败。目录：{stagingFolder}，异常类型：{ex.GetType().FullName}，HRESULT：0x{ex.HResult:X8}，消息：{ex.Message}");
+            }
         }
 
         private void Process_cpp(string protoPath)
