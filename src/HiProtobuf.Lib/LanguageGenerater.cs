@@ -173,6 +173,7 @@ namespace HiProtobuf.Lib
 
             foreach (var filePath in files)
             {
+                string operation = "读取";
                 try
                 {
                     // 读取文件内容为文本（protoc 生成的文件通常是 UTF-8）
@@ -186,12 +187,13 @@ namespace HiProtobuf.Lib
                         content = content.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", "\r\n");
 
                         // 写回文件，使用无 BOM 的 UTF-8 编码
+                        operation = "写入";
                         File.WriteAllText(filePath, content, new System.Text.UTF8Encoding(false));
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // 忽略无法处理的文件（可能是二进制文件或编码问题）
+                    Log.Error($"转换文件换行符失败。操作：{operation}，文件：{filePath}，异常类型：{ex.GetType().FullName}，HRESULT：0x{ex.HResult:X8}，消息：{ex.Message}");
                     continue;
                 }
             }
