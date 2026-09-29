@@ -1,0 +1,86 @@
+@page
+@{ Layout = null; }
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SteamReportSystem</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="wrap header-grid">
+      <div><div class="eyebrow">GUNCROSS · STEAM STATS</div><h1>Steam 统计报表</h1>
+        <p>本机管理工具 · Steam 原始统计只读</p></div>
+      <div id="connection" class="status">正在检查配置…</div>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="panel">
+      <h2>选择报表范围</h2>
+      <div class="controls">
+        <label>起始日期（UTC）<input id="start" type="date"></label>
+        <label>结束日期（UTC）<input id="end" type="date"></label>
+        <label>报表基线<select id="baseline"><option value="">不使用基线</option></select></label>
+        <button id="load-report" class="primary">查询报表</button>
+        <a id="export" class="button" href="#">导出 CSV</a>
+      </div>
+      <p class="note">每日趋势按 Steam 返回的 UTC 日期展示。空白表示没有收到该日数据，不代表 0。</p>
+      <div id="error" class="error" hidden></div>
+    </section>
+
+    <section id="report" hidden>
+      <div class="cards">
+        <div class="card"><span>AppID</span><strong id="appid">—</strong></div>
+        <div class="card"><span>查询时间（UTC）</span><strong id="fetched">—</strong></div>
+        <div class="card"><span>教程完成累计人数</span><strong id="tutorial">—</strong></div>
+        <div class="card"><span>教程完成区间新增</span><strong id="tutorial-period">—</strong></div>
+      </div>
+      <div id="warnings" class="warnings" hidden></div>
+      <section class="panel">
+        <div class="section-title"><div><h2>每日趋势</h2><p>可切换关卡与指标，图中只连接有数据的日期。</p></div>
+          <label>显示指标<select id="metric"></select></label></div>
+        <div id="chart" class="chart"></div>
+        <div class="table-scroll"><table id="daily-table"><thead><tr><th>UTC 日期</th><th>数值</th></tr></thead><tbody></tbody></table></div>
+      </section>
+      <section class="panel">
+        <h2>关卡汇总</h2>
+        <p class="note">“到达人数”是首次到达该关的累计人数；各关人数不能相加当作全游戏去重人数。</p>
+        <div class="table-scroll"><table id="levels"><thead><tr><th>关卡</th><th>战斗开始累计</th><th>基线后增加</th><th>区间增加</th><th>到达累计人数</th><th>基线后新增</th><th>区间新增</th></tr></thead><tbody></tbody></table></div>
+      </section>
+    </section>
+
+    <div class="two-column">
+      <section class="panel">
+        <h2>建立报表基线</h2>
+        <p>保存当前 41 项累计值。之后可以查看相对该时刻的变化；Steam 原始数据不会改变。</p>
+        <label>操作原因<textarea id="reason" rows="3" maxlength="500" placeholder="例如：新版本上线，开始新一轮运营统计"></textarea></label>
+        <button id="create-baseline">抓取实时值并创建基线</button>
+        <p id="baseline-message" class="note"></p>
+      </section>
+      <section class="panel">
+        <h2>统计目录核对</h2>
+        <p>检查 41 个 API Name 是否存在于已发布的 Steam 目录。</p>
+        <button id="check-catalog">开始核对</button>
+        <div id="catalog-result" class="note"></div>
+      </section>
+    </div>
+
+    <div class="two-column">
+      <section class="panel">
+        <h2>指定玩家查询</h2>
+        <div class="controls"><label>SteamID64<input id="steam-id" inputmode="numeric" placeholder="输入已知的 SteamID64"></label>
+          <button id="load-player">查询玩家</button></div>
+        <div id="player-result" class="table-scroll"></div>
+      </section>
+      <section class="panel">
+        <h2>基线操作记录</h2>
+        <div id="audit-result" class="table-scroll"></div>
+      </section>
+    </div>
+  </main>
+  <footer class="wrap">SteamReportSystem · 仅监听 127.0.0.1</footer>
+</body>
+</html>

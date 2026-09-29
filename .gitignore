@@ -11,3 +11,8 @@ src/Localize/Localize/obj
 src/OllamaLocalization/OllamaLocalization/obj/Debug
 src/GoogleLocalization/GoogleLocalization/obj/Release
 src/OllamaLocalization/OllamaLocalization/obj/Release
+src/SteamReportSystem/bin/
+src/SteamReportSystem/data/
+src/SteamReportSystem.Tests/bin/
+src/SteamReportSystem/obj/
+src/SteamReportSystem.Tests/obj/

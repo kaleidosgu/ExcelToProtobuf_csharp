@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleLocalization", "Googl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OllamaLocalization", "OllamaLocalization\OllamaLocalization\OllamaLocalization.csproj", "{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamReportSystem", "SteamReportSystem\SteamReportSystem.csproj", "{5F93A19A-B0BC-4655-8E9D-811FBADF0B8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamReportSystem.Tests", "SteamReportSystem.Tests\SteamReportSystem.Tests.csproj", "{41641786-115C-4A67-8D8F-A7A86A91F124}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87A1AE41-E2A7-4A30-B4D8-CE59346323F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F93A19A-B0BC-4655-8E9D-811FBADF0B8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F93A19A-B0BC-4655-8E9D-811FBADF0B8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F93A19A-B0BC-4655-8E9D-811FBADF0B8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F93A19A-B0BC-4655-8E9D-811FBADF0B8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41641786-115C-4A67-8D8F-A7A86A91F124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41641786-115C-4A67-8D8F-A7A86A91F124}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41641786-115C-4A67-8D8F-A7A86A91F124}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41641786-115C-4A67-8D8F-A7A86A91F124}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

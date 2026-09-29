@@ -1,0 +1,371 @@
+[
+  {
+    "ApiName": "level_01_battle_starts",
+    "DisplayName": "关卡 01 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 1,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_01_reached",
+    "DisplayName": "关卡 01 到达人数",
+    "Category": "Reached",
+    "LevelId": 1,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_02_battle_starts",
+    "DisplayName": "关卡 02 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 2,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_02_reached",
+    "DisplayName": "关卡 02 到达人数",
+    "Category": "Reached",
+    "LevelId": 2,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_03_battle_starts",
+    "DisplayName": "关卡 03 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 3,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_03_reached",
+    "DisplayName": "关卡 03 到达人数",
+    "Category": "Reached",
+    "LevelId": 3,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_04_battle_starts",
+    "DisplayName": "关卡 04 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 4,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_04_reached",
+    "DisplayName": "关卡 04 到达人数",
+    "Category": "Reached",
+    "LevelId": 4,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_05_battle_starts",
+    "DisplayName": "关卡 05 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 5,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_05_reached",
+    "DisplayName": "关卡 05 到达人数",
+    "Category": "Reached",
+    "LevelId": 5,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_06_battle_starts",
+    "DisplayName": "关卡 06 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 6,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_06_reached",
+    "DisplayName": "关卡 06 到达人数",
+    "Category": "Reached",
+    "LevelId": 6,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_07_battle_starts",
+    "DisplayName": "关卡 07 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 7,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_07_reached",
+    "DisplayName": "关卡 07 到达人数",
+    "Category": "Reached",
+    "LevelId": 7,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_08_battle_starts",
+    "DisplayName": "关卡 08 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 8,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_08_reached",
+    "DisplayName": "关卡 08 到达人数",
+    "Category": "Reached",
+    "LevelId": 8,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_09_battle_starts",
+    "DisplayName": "关卡 09 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 9,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_09_reached",
+    "DisplayName": "关卡 09 到达人数",
+    "Category": "Reached",
+    "LevelId": 9,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_10_battle_starts",
+    "DisplayName": "关卡 10 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 10,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_10_reached",
+    "DisplayName": "关卡 10 到达人数",
+    "Category": "Reached",
+    "LevelId": 10,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_11_battle_starts",
+    "DisplayName": "关卡 11 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 11,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_11_reached",
+    "DisplayName": "关卡 11 到达人数",
+    "Category": "Reached",
+    "LevelId": 11,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_12_battle_starts",
+    "DisplayName": "关卡 12 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 12,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_12_reached",
+    "DisplayName": "关卡 12 到达人数",
+    "Category": "Reached",
+    "LevelId": 12,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_13_battle_starts",
+    "DisplayName": "关卡 13 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 13,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_13_reached",
+    "DisplayName": "关卡 13 到达人数",
+    "Category": "Reached",
+    "LevelId": 13,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_14_battle_starts",
+    "DisplayName": "关卡 14 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 14,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_14_reached",
+    "DisplayName": "关卡 14 到达人数",
+    "Category": "Reached",
+    "LevelId": 14,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_15_battle_starts",
+    "DisplayName": "关卡 15 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 15,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_15_reached",
+    "DisplayName": "关卡 15 到达人数",
+    "Category": "Reached",
+    "LevelId": 15,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_16_battle_starts",
+    "DisplayName": "关卡 16 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 16,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_16_reached",
+    "DisplayName": "关卡 16 到达人数",
+    "Category": "Reached",
+    "LevelId": 16,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_17_battle_starts",
+    "DisplayName": "关卡 17 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 17,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_17_reached",
+    "DisplayName": "关卡 17 到达人数",
+    "Category": "Reached",
+    "LevelId": 17,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_18_battle_starts",
+    "DisplayName": "关卡 18 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 18,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_18_reached",
+    "DisplayName": "关卡 18 到达人数",
+    "Category": "Reached",
+    "LevelId": 18,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_19_battle_starts",
+    "DisplayName": "关卡 19 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 19,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_19_reached",
+    "DisplayName": "关卡 19 到达人数",
+    "Category": "Reached",
+    "LevelId": 19,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_20_battle_starts",
+    "DisplayName": "关卡 20 战斗开始次数",
+    "Category": "BattleStarts",
+    "LevelId": 20,
+    "ValueKind": "Count",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "level_20_reached",
+    "DisplayName": "关卡 20 到达人数",
+    "Category": "Reached",
+    "LevelId": 20,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  },
+  {
+    "ApiName": "tutorial_completed",
+    "DisplayName": "教程完成人数",
+    "Category": "Tutorial",
+    "LevelId": null,
+    "ValueKind": "UniqueFlag",
+    "Aggregated": true,
+    "IncrementOnly": true
+  }
+]
