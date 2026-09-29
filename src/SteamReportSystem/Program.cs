@@ -76,6 +76,9 @@ app.MapGet("/api/status", (IOptions<SteamReportOptions> options) =>
 app.MapGet("/api/catalog", () => Results.Ok(StatCatalog.All));
 app.MapGet("/api/catalog/check", async (SteamGateway gateway, CancellationToken cancellationToken) =>
     Results.Ok(await gateway.CheckCatalogAsync(cancellationToken)));
+app.MapGet("/api/diagnostics/global-stat/{apiName}", async (string apiName, DateOnly? start, DateOnly? end,
+    SteamGateway gateway, CancellationToken cancellationToken) =>
+    Results.Ok(await gateway.ProbeGlobalStatAsync(apiName, start, end, cancellationToken)));
 app.MapGet("/api/baselines", async (BaselineStore store, CancellationToken cancellationToken) =>
     Results.Ok(await store.ListAsync(cancellationToken)));
 app.MapGet("/api/audit", async (BaselineStore store, CancellationToken cancellationToken) =>
@@ -166,7 +169,7 @@ static string BuildCsv(ReportResult report)
     }
     return csv.ToString();
 
-    void AppendStat(string name, long total, long? delta, string levelId)
+    void AppendStat(string name, long? total, long? delta, string levelId)
     {
         report.PeriodTotals.TryGetValue(name, out long? period);
         csv.AppendLine($"summary,{common},{levelId},{name},{total},{delta},{period},,");

@@ -59,8 +59,17 @@ internal sealed class SteamGateway
             {
                 continue;
             }
-            Console.WriteLine($"API Name: {definition.ApiName}, 数据: {entry.GetRawText()}");
-            long total = ParseLong(RequireProperty(entry, "total"));
+            if (entry.ValueKind == JsonValueKind.Object && !entry.EnumerateObject().Any())
+            {
+                // Steam returned this stat name without a value; the response does not identify why.
+                continue;
+            }
+            if (entry.ValueKind != JsonValueKind.Object ||
+                !entry.TryGetProperty("total", out JsonElement totalElement))
+            {
+                throw new SteamApiException($"Steam 返回的统计项 {definition.ApiName} 格式异常：缺少 total。", 502);
+            }
+            long total = ParseLong(totalElement);
             List<DailyValue> history = new();
             if (entry.TryGetProperty("history", out JsonElement historyElement) &&
                 historyElement.ValueKind == JsonValueKind.Array)
@@ -79,6 +88,60 @@ internal sealed class SteamGateway
         }
 
         return new GlobalSnapshot(DateTimeOffset.UtcNow, stats);
+    }
+
+    public async Task<GlobalStatProbe> ProbeGlobalStatAsync(string apiName, DateOnly? start, DateOnly? end,
+        CancellationToken cancellationToken)
+    {
+        if (!StatCatalog.All.Any(item => item.ApiName == apiName))
+        {
+            throw new SteamApiException("只能诊断本地统计目录中的 API Name。", 400);
+        }
+
+        List<KeyValuePair<string, string>> parameters = new()
+        {
+            new("appid", options.AppId.ToString(CultureInfo.InvariantCulture)),
+            new("count", "1"),
+            new("name[0]", apiName),
+            new("format", "json")
+        };
+        if (start.HasValue != end.HasValue || start > end)
+        {
+            throw new SteamApiException("诊断日期范围无效。", 400);
+        }
+        if (start.HasValue && end.HasValue)
+        {
+            parameters.Add(new("startdate", ToUnixSeconds(start.Value)));
+            parameters.Add(new("enddate", ToUnixSeconds(end.Value)));
+        }
+        using JsonDocument document = await GetAsync("ISteamUserStats/GetGlobalStatsForGame/v1/",
+            parameters, cancellationToken);
+        JsonElement response = RequireObject(document.RootElement, "response");
+        string? resultCode = response.TryGetProperty("result", out JsonElement result)
+            ? result.ValueKind == JsonValueKind.String ? result.GetString() : result.GetRawText()
+            : null;
+        bool hasGlobalStats = response.TryGetProperty("globalstats", out JsonElement globalStats) &&
+            globalStats.ValueKind == JsonValueKind.Object;
+        JsonElement entry = default;
+        bool entryPresent = hasGlobalStats && globalStats.TryGetProperty(apiName, out entry);
+        string? entryKind = entryPresent ? entry.ValueKind.ToString() : null;
+        List<string> fields = entryPresent && entry.ValueKind == JsonValueKind.Object
+            ? entry.EnumerateObject().Select(property => property.Name).ToList() : new();
+        JsonElement totalElement = default;
+        bool hasTotal = entryPresent && entry.ValueKind == JsonValueKind.Object &&
+            entry.TryGetProperty("total", out totalElement);
+        long? total = null;
+        if (hasTotal)
+        {
+            string? totalText = totalElement.ValueKind == JsonValueKind.String
+                ? totalElement.GetString() : totalElement.GetRawText();
+            if (long.TryParse(totalText, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed))
+            {
+                total = parsed;
+            }
+        }
+        return new GlobalStatProbe(options.AppId, apiName, resultCode, hasGlobalStats,
+            entryPresent, entryKind, hasTotal, total, fields);
     }
 
     public async Task<PlayerResult> GetPlayerAsync(string steamId64, CancellationToken cancellationToken)

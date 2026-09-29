@@ -28,13 +28,13 @@ internal sealed record GlobalSnapshot(DateTimeOffset FetchedAt, IReadOnlyDiction
 internal sealed record BaselineRecord(Guid Id, uint AppId, DateTimeOffset CreatedAt, string Reason,
     IReadOnlyDictionary<string, long> Values);
 
-internal sealed record ReportRow(int LevelId, long BattleStarts, long Reached,
+internal sealed record ReportRow(int LevelId, long? BattleStarts, long? Reached,
     long? BattleStartsAfterBaseline, long? ReachedAfterBaseline, bool HasAnomaly);
 
 internal sealed record DailyRow(DateOnly Date, IReadOnlyDictionary<string, long> Values);
 
 internal sealed record ReportResult(uint AppId, DateTimeOffset FetchedAt, DateOnly StartDate, DateOnly EndDate,
-    BaselineRecord? Baseline, IReadOnlyList<ReportRow> Levels, long TutorialCompleted,
+    BaselineRecord? Baseline, IReadOnlyList<ReportRow> Levels, long? TutorialCompleted,
     long? TutorialCompletedAfterBaseline, IReadOnlyList<DailyRow> Daily,
     IReadOnlyDictionary<string, long?> PeriodTotals, IReadOnlyList<string> Warnings);
 
@@ -45,6 +45,10 @@ internal sealed record PlayerResult(string SteamId64, DateTimeOffset FetchedAt,
 
 internal sealed record CatalogCheck(IReadOnlyList<string> Found, IReadOnlyList<string> Missing,
     IReadOnlyList<string> Warnings);
+
+internal sealed record GlobalStatProbe(uint AppId, string ApiName, string? ResultCode,
+    bool HasGlobalStats, bool EntryPresent, string? EntryKind, bool HasTotal, long? Total,
+    IReadOnlyList<string> EntryFields);
 
 internal sealed record CreateBaselineRequest(string Reason);
 

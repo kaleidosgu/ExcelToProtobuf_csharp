@@ -80,7 +80,7 @@ internal sealed class BaselineStore
         if (snapshot.Stats.Count != StatCatalog.All.Count ||
             StatCatalog.All.Any(item => !snapshot.Stats.ContainsKey(item.ApiName)))
         {
-            throw new SteamApiException("Steam 未返回全部 41 项，基线未创建。", 422);
+            throw new SteamApiException("Steam 未提供全部 41 项的明确全局值，基线未创建；空白不能当作 0。", 422);
         }
 
         BaselineRecord baseline = new(Guid.NewGuid(), appId, snapshot.FetchedAt, reason,

@@ -194,6 +194,30 @@ async function checkCatalog() {
     } catch (failure) { result.textContent = failure.message; }
 }
 
+async function probeGlobalStat() {
+    const result = byId('probe-result');
+    const button = byId('probe-global');
+    result.textContent = '正在查询…';
+    button.disabled = true;
+    try {
+        const apiName = byId('probe-stat').value;
+        const url = `/api/diagnostics/global-stat/${encodeURIComponent(apiName)}`;
+        const withoutDates = await getJson(url);
+        const dates = new URLSearchParams({start: byId('start').value, end: byId('end').value});
+        const withDates = await getJson(`${url}?${dates}`);
+        const describe = probe => {
+            const entry = !probe.hasGlobalStats ? '未返回 globalstats' :
+                !probe.entryPresent ? '未返回该统计项' :
+                probe.hasTotal ? `total = ${integer(probe.total)}` :
+                `${probe.entryKind}，字段：${probe.entryFields.join('、') || '无'}`;
+            return `result=${probe.resultCode ?? '未提供'}，${entry}`;
+        };
+        result.textContent = `AppID ${withoutDates.appId} · ${apiName}。` +
+            `不带日期：${describe(withoutDates)}；带日期：${describe(withDates)}。`;
+    } catch (failure) { result.textContent = failure.message; }
+    finally { button.disabled = false; }
+}
+
 async function loadPlayer() {
     const container = byId('player-result');
     container.textContent = '正在查询…';
@@ -218,6 +242,7 @@ async function initialize() {
     byId('metric').addEventListener('change', renderTrend);
     byId('create-baseline').addEventListener('click', createBaseline);
     byId('check-catalog').addEventListener('click', checkCatalog);
+    byId('probe-global').addEventListener('click', probeGlobalStat);
     byId('load-player').addEventListener('click', loadPlayer);
     try {
         const [status, definitions] = await Promise.all([getJson('/api/status'), getJson('/api/catalog')]);
@@ -225,7 +250,12 @@ async function initialize() {
         byId('connection').textContent = `AppID ${status.appId || '未配置'} · ` +
             (status.hasPublisherKey ? '已找到 Key 环境变量' : '尚未设置 Key 环境变量');
         const metric = byId('metric');
-        for (const item of catalog) metric.add(new Option(item.displayName, item.apiName));
+        const probeStat = byId('probe-stat');
+        for (const item of catalog) {
+            metric.add(new Option(item.displayName, item.apiName));
+            probeStat.add(new Option(item.apiName, item.apiName));
+        }
+        probeStat.value = 'level_14_battle_starts';
         await Promise.all([loadBaselines(), loadAudit()]);
         if (status.appId && status.hasPublisherKey) await loadReport();
     } catch (failure) { byId('connection').textContent = failure.message; }

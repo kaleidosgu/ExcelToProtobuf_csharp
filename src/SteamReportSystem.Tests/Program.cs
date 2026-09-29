@@ -31,6 +31,25 @@ await store.InitializeAsync(CancellationToken.None);
 GlobalSnapshot snapshot = await gateway.GetGlobalAsync(start, end, CancellationToken.None);
 Assert(snapshot.Stats.Count == 41, "应解析全部 41 项统计。");
 Assert(snapshot.Stats["level_01_battle_starts"].History.Count == 2, "应解析两日历史。");
+GlobalStatProbe probe = await gateway.ProbeGlobalStatAsync("level_14_battle_starts", null, null,
+    CancellationToken.None);
+Assert(probe.AppId == 123 && probe.Total == 17 && probe.EntryPresent,
+    "单项诊断应使用相同 AppID 并读取明确的全局值。");
+GlobalStatProbe datedProbe = await gateway.ProbeGlobalStatAsync("level_14_battle_starts", start, end,
+    CancellationToken.None);
+Assert(datedProbe.Total == 18, "单项诊断应能对比带日期范围的响应。");
+handler.ProbeEmpty = true;
+GlobalStatProbe emptyProbe = await gateway.ProbeGlobalStatAsync("level_14_battle_starts", null, null,
+    CancellationToken.None);
+Assert(emptyProbe.EntryPresent && !emptyProbe.HasTotal && emptyProbe.EntryFields.Count == 0,
+    "单项诊断应把空对象报告为空对象，而非零。");
+handler.ProbeEmpty = false;
+handler.ProbeResultOnly = true;
+GlobalStatProbe failedProbe = await gateway.ProbeGlobalStatAsync("level_14_battle_starts", null, null,
+    CancellationToken.None);
+Assert(failedProbe.ResultCode == "8" && !failedProbe.HasGlobalStats,
+    "单项诊断应显示 Steam 的请求级结果码。");
+handler.ProbeResultOnly = false;
 BaselineRecord baseline = await store.CreateAsync(snapshot, "自动测试基线", CancellationToken.None);
 ReportService reports = new(gateway, store, Options.Create(options));
 ReportResult report = await reports.GetAsync(start, end, baseline.Id, CancellationToken.None);
@@ -45,6 +64,26 @@ Assert(!sparse.Daily[0].Values.ContainsKey("level_01_battle_starts"), "缺失日
 Assert(sparse.PeriodTotals["level_01_battle_starts"] == 2, "区间只累加返回的日期。");
 Assert(sparse.Warnings.Count > 0, "缺失日期应有明确提示。");
 handler.OmitFirstDay = false;
+
+handler.EmptyFirstStat = true;
+GlobalSnapshot emptyStatSnapshot = await gateway.GetGlobalAsync(start, end, CancellationToken.None);
+Assert(!emptyStatSnapshot.Stats.ContainsKey("level_01_battle_starts"), "空对象不能被解释为零。");
+ReportResult partial = await reports.GetAsync(start, end, baseline.Id, CancellationToken.None);
+Assert(partial.Levels[0].BattleStarts == null && partial.Levels[0].BattleStartsAfterBaseline == null,
+    "缺少全局值的报表单元格应留空。");
+Assert(partial.Warnings.Any(item => item.Contains("level_01_battle_starts", StringComparison.Ordinal)),
+    "报表应列出没有全局值的统计项。");
+bool emptyStatBaselineRefused = false;
+try
+{
+    await store.CreateAsync(emptyStatSnapshot, "空对象快照", CancellationToken.None);
+}
+catch (SteamApiException)
+{
+    emptyStatBaselineRefused = true;
+}
+Assert(emptyStatBaselineRefused, "空对象不能用于创建基线。");
+handler.EmptyFirstStat = false;
 
 handler.Total = 5;
 ReportResult decreased = await reports.GetAsync(start, end, baseline.Id, CancellationToken.None);
@@ -112,9 +151,12 @@ internal sealed class MockHandler : HttpMessageHandler
     private readonly DateOnly end;
     public bool OmitLastStat { get; set; }
     public bool OmitFirstDay { get; set; }
+    public bool EmptyFirstStat { get; set; }
     public long Total { get; set; } = 10;
     public bool GlobalResultOnly { get; set; }
     public bool OmitAvailableGameStats { get; set; }
+    public bool ProbeEmpty { get; set; }
+    public bool ProbeResultOnly { get; set; }
 
     public MockHandler(DateOnly start, DateOnly end)
     {
@@ -135,6 +177,33 @@ internal sealed class MockHandler : HttpMessageHandler
         string path = request.RequestUri!.AbsolutePath;
         if (path.Contains("GetGlobalStatsForGame", StringComparison.Ordinal))
         {
+            if (request.RequestUri.Query.Contains("count=1", StringComparison.Ordinal))
+            {
+                if (!request.RequestUri.Query.Contains("name%5B0%5D=level_14_battle_starts",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new Exception("单项诊断必须只请求目标 API Name。");
+                }
+                bool hasDates = request.RequestUri.Query.Contains("startdate=", StringComparison.Ordinal) &&
+                    request.RequestUri.Query.Contains("enddate=", StringComparison.Ordinal);
+                if (ProbeResultOnly)
+                {
+                    body = new { response = new { result = 8 } };
+                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+                    });
+                }
+                object stat = ProbeEmpty ? new { } : new { total = hasDates ? 18 : 17 };
+                body = new { response = new { result = 1, globalstats = new Dictionary<string, object>
+                {
+                    ["level_14_battle_starts"] = stat
+                } } };
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+                });
+            }
             if (GlobalResultOnly)
             {
                 body = new { response = new { result = 8 } };
@@ -152,7 +221,9 @@ internal sealed class MockHandler : HttpMessageHandler
                     history.Add(new { date = ToUnix(start), total = 1 });
                 }
                 history.Add(new { date = ToUnix(end), total = 2 });
-                values.Add(definition.ApiName, new { total = Total, history });
+                values.Add(definition.ApiName,
+                    EmptyFirstStat && definition.ApiName == "level_01_battle_starts"
+                        ? new { } : new { total = Total, history });
             }
             body = new { response = new { globalstats = values } };
         }

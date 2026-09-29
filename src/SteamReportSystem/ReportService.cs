@@ -41,21 +41,25 @@ internal sealed class ReportService
         GlobalSnapshot snapshot = await gateway.GetGlobalAsync(start, end, cancellationToken);
         List<string> missing = StatCatalog.All.Where(item => !snapshot.Stats.ContainsKey(item.ApiName))
             .Select(item => item.ApiName).ToList();
+        List<string> warnings = new();
         if (missing.Count > 0)
         {
-            throw new SteamApiException("Steam 未返回以下统计项：" + string.Join(", ", missing), 422);
+            warnings.Add("Steam 未提供以下统计项的全局值（可能返回空对象、未返回该项或配置尚未生效）：" +
+                string.Join(", ", missing) + "。原因无法仅凭此响应确定；空白不代表 0。");
         }
-
-        List<string> warnings = new();
         List<ReportRow> levels = new();
         for (int levelId = 1; levelId <= 20; levelId++)
         {
             string startsName = $"level_{levelId:00}_battle_starts";
             string reachedName = $"level_{levelId:00}_reached";
-            long starts = snapshot.Stats[startsName].Total;
-            long reached = snapshot.Stats[reachedName].Total;
-            long? startsDelta = baseline == null ? null : starts - baseline.Values[startsName];
-            long? reachedDelta = baseline == null ? null : reached - baseline.Values[reachedName];
+            long? starts = snapshot.Stats.TryGetValue(startsName, out GlobalStat? startsStat)
+                ? startsStat.Total : null;
+            long? reached = snapshot.Stats.TryGetValue(reachedName, out GlobalStat? reachedStat)
+                ? reachedStat.Total : null;
+            long? startsDelta = baseline == null || !starts.HasValue
+                ? null : starts.Value - baseline.Values[startsName];
+            long? reachedDelta = baseline == null || !reached.HasValue
+                ? null : reached.Value - baseline.Values[reachedName];
             bool anomaly = startsDelta < 0 || reachedDelta < 0;
             if (anomaly)
             {
@@ -64,8 +68,10 @@ internal sealed class ReportService
             levels.Add(new ReportRow(levelId, starts, reached, startsDelta, reachedDelta, anomaly));
         }
 
-        long tutorial = snapshot.Stats["tutorial_completed"].Total;
-        long? tutorialDelta = baseline == null ? null : tutorial - baseline.Values["tutorial_completed"];
+        long? tutorial = snapshot.Stats.TryGetValue("tutorial_completed", out GlobalStat? tutorialStat)
+            ? tutorialStat.Total : null;
+        long? tutorialDelta = baseline == null || !tutorial.HasValue
+            ? null : tutorial.Value - baseline.Values["tutorial_completed"];
         if (tutorialDelta < 0)
         {
             warnings.Add("教程完成当前累计值低于基线，请核查 Steam 数据。");
@@ -77,11 +83,14 @@ internal sealed class ReportService
         foreach (StatDefinition definition in StatCatalog.All)
         {
             Dictionary<DateOnly, long> byDate = new();
-            foreach (DailyValue value in snapshot.Stats[definition.ApiName].History)
+            if (snapshot.Stats.TryGetValue(definition.ApiName, out GlobalStat? stat))
             {
-                if (value.Date >= start && value.Date <= end)
+                foreach (DailyValue value in stat.History)
                 {
-                    byDate[value.Date] = value.Value;
+                    if (value.Date >= start && value.Date <= end)
+                    {
+                        byDate[value.Date] = value.Value;
+                    }
                 }
             }
             historyByStat.Add(definition.ApiName, byDate);
