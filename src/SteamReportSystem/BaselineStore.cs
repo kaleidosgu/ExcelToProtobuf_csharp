@@ -77,10 +77,12 @@ internal sealed class BaselineStore
     public async Task<BaselineRecord> CreateAsync(GlobalSnapshot snapshot, string reason,
         CancellationToken cancellationToken)
     {
-        if (snapshot.Stats.Count != StatCatalog.All.Count ||
-            StatCatalog.All.Any(item => !snapshot.Stats.ContainsKey(item.ApiName)))
+        List<string> missing = StatCatalog.All.Where(item => !snapshot.Stats.ContainsKey(item.ApiName))
+            .Select(item => item.ApiName).ToList();
+        if (snapshot.Stats.Count != StatCatalog.All.Count || missing.Count > 0)
         {
-            throw new SteamApiException("Steam 未提供全部 41 项的明确全局值，基线未创建；空白不能当作 0。", 422);
+            throw new SteamApiException($"Steam 有 {missing.Count} 项没有明确的全局值，基线未创建：" +
+                string.Join(", ", missing) + "。空白不能当作 0。", 422);
         }
 
         BaselineRecord baseline = new(Guid.NewGuid(), appId, snapshot.FetchedAt, reason,

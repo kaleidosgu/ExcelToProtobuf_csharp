@@ -52,6 +52,17 @@ Assert(failedProbe.ResultCode == "8" && !failedProbe.HasGlobalStats,
 handler.ProbeResultOnly = false;
 BaselineRecord baseline = await store.CreateAsync(snapshot, "自动测试基线", CancellationToken.None);
 ReportService reports = new(gateway, store, Options.Create(options));
+DateOnly futureUtcDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
+bool explainedUtcLimit = false;
+try
+{
+    await reports.GetAsync(futureUtcDate, futureUtcDate, null, CancellationToken.None);
+}
+catch (SteamApiException exception)
+{
+    explainedUtcLimit = exception.Message.Contains("当前 UTC 日期", StringComparison.Ordinal);
+}
+Assert(explainedUtcLimit, "未来 UTC 日期应说明当前 UTC 日期。");
 ReportResult report = await reports.GetAsync(start, end, baseline.Id, CancellationToken.None);
 Assert(report.Levels.Count == 20, "关卡汇总应有 20 行。");
 Assert(report.Levels[0].BattleStartsAfterBaseline == 0, "刚创建的基线差值应为零。");
@@ -78,11 +89,11 @@ try
 {
     await store.CreateAsync(emptyStatSnapshot, "空对象快照", CancellationToken.None);
 }
-catch (SteamApiException)
+catch (SteamApiException exception)
 {
-    emptyStatBaselineRefused = true;
+    emptyStatBaselineRefused = exception.Message.Contains("level_01_battle_starts", StringComparison.Ordinal);
 }
-Assert(emptyStatBaselineRefused, "空对象不能用于创建基线。");
+Assert(emptyStatBaselineRefused, "空对象不能用于创建基线，且应列出缺失项。");
 handler.EmptyFirstStat = false;
 
 handler.Total = 5;

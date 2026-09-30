@@ -24,10 +24,19 @@ internal sealed class ReportService
     public async Task<ReportResult> GetAsync(DateOnly start, DateOnly end, Guid? baselineId,
         CancellationToken cancellationToken)
     {
-        if (start > end || end > DateOnly.FromDateTime(DateTime.UtcNow) ||
-            end.DayNumber - start.DayNumber > 365)
+        if (start > end)
         {
-            throw new SteamApiException("日期范围须在今天之前，且不能超过 366 天。", 400);
+            throw new SteamApiException("起始日期不能晚于结束日期。", 400);
+        }
+        DateOnly todayUtc = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (end > todayUtc)
+        {
+            throw new SteamApiException($"结束日期 {end:yyyy-MM-dd} 晚于当前 UTC 日期 " +
+                $"{todayUtc:yyyy-MM-dd}。报表日期按 UTC 计算。", 400);
+        }
+        if (end.DayNumber - start.DayNumber > 365)
+        {
+            throw new SteamApiException("日期范围最多包含 366 个 UTC 日。", 400);
         }
 
         BaselineRecord? baseline = baselineId.HasValue
@@ -44,8 +53,10 @@ internal sealed class ReportService
         List<string> warnings = new();
         if (missing.Count > 0)
         {
-            warnings.Add("Steam 未提供以下统计项的全局值（可能返回空对象、未返回该项或配置尚未生效）：" +
-                string.Join(", ", missing) + "。原因无法仅凭此响应确定；空白不代表 0。");
+            warnings.Add("以下统计项本次未返回明确的全局值：" + string.Join(", ", missing) +
+                "。这不等于统计项名称无效，也不能当作 0。请用“统计目录核对”检查 API Name，" +
+                "并在 Steamworks 后台确认 Aggregated 已启用；若配置均正确，可能是聚合数据尚未生成或同步，" +
+                "但当前响应无法确认具体原因。");
         }
         List<ReportRow> levels = new();
         for (int levelId = 1; levelId <= 20; levelId++)
@@ -112,7 +123,8 @@ internal sealed class ReportService
 
         if (historyByStat.Any(item => item.Value.Count < daily.Count))
         {
-            warnings.Add("部分日期没有返回每日值；趋势图留空，区间合计只累计已返回的日期。请勿将空白视为 0。");
+            warnings.Add("部分统计项在所选日期内没有返回每日值；趋势图留空，区间合计只累计已返回的日期。" +
+                "每日值缺失与累计全局值是否存在分别判断，空白不代表 0。");
         }
 
         return new ReportResult(options.AppId, snapshot.FetchedAt, start, end, baseline,

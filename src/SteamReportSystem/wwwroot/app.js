@@ -249,6 +249,10 @@ async function initialize() {
         catalog = definitions;
         byId('connection').textContent = `AppID ${status.appId || '未配置'} · ` +
             (status.hasPublisherKey ? '已找到 Key 环境变量' : '尚未设置 Key 环境变量');
+        byId('start').max = status.currentUtcDate;
+        byId('end').max = status.currentUtcDate;
+        byId('date-note').textContent = `当前 UTC 日期为 ${status.currentUtcDate}；` +
+            '北京时间早上 8 点前，UTC 仍是前一天。当天数据可能尚未完整；空白不代表 0。';
         const metric = byId('metric');
         const probeStat = byId('probe-stat');
         for (const item of catalog) {

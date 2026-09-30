@@ -220,7 +220,8 @@ internal sealed class SteamGateway
         List<string> missing = StatCatalog.All.Where(item => !published.Contains(item.ApiName))
             .Select(item => item.ApiName).ToList();
         return new CatalogCheck(found, missing,
-            new[] { "此接口只核对 API Name 是否存在；Aggregated、Increment Only 等约束仍需与 Steamworks 后台人工核对。" });
+            new[] { "目录核对只确认已发布的 API Name 是否存在；即使全部找到，也不能证明 Aggregated 已启用或全局值已生成。" +
+                "请在 Steamworks 后台人工核对 Aggregated、Increment Only 等设置。" });
     }
 
     private async Task<JsonDocument> GetAsync(string path, IEnumerable<KeyValuePair<string, string>> parameters,

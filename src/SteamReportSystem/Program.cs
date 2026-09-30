@@ -70,6 +70,7 @@ app.MapGet("/api/status", (IOptions<SteamReportOptions> options) =>
         options.Value.AppId,
         HasPublisherKey = !string.IsNullOrWhiteSpace(
             Environment.GetEnvironmentVariable(options.Value.PublisherKeyEnvironmentVariable)),
+        CurrentUtcDate = DateOnly.FromDateTime(DateTime.UtcNow),
         CatalogCount = StatCatalog.All.Count,
         LocalOnly = true
     }));
