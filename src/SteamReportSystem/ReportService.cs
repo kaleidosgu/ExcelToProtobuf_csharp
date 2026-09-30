@@ -46,11 +46,27 @@ internal sealed class ReportService
         {
             throw new SteamApiException("未找到所选基线。", 404);
         }
+        if (baseline != null)
+        {
+            List<string> missingBaselineValues = StatCatalog.All
+                .Where(item => !baseline.Values.ContainsKey(item.ApiName))
+                .Select(item => item.ApiName).ToList();
+            if (missingBaselineValues.Count > 0)
+            {
+                throw new SteamApiException("所选基线缺少当前目录中的统计项，无法用于报表：" +
+                    string.Join(", ", missingBaselineValues), 422);
+            }
+        }
 
         GlobalSnapshot snapshot = await gateway.GetGlobalAsync(start, end, cancellationToken);
         List<string> missing = StatCatalog.All.Where(item => !snapshot.Stats.ContainsKey(item.ApiName))
             .Select(item => item.ApiName).ToList();
         List<string> warnings = new();
+        if (baseline?.InferredZeroStats.Count > 0)
+        {
+            warnings.Add("所选基线以下统计项采用推定 0，Steam 在创建时未返回明确全局值：" +
+                string.Join(", ", baseline.InferredZeroStats) + "。基线后增加按当前累计值减 0 计算。");
+        }
         if (missing.Count > 0)
         {
             warnings.Add("以下统计项本次未返回明确的全局值：" + string.Join(", ", missing) +

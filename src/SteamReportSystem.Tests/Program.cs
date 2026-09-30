@@ -51,6 +51,11 @@ Assert(failedProbe.ResultCode == "8" && !failedProbe.HasGlobalStats,
     "单项诊断应显示 Steam 的请求级结果码。");
 handler.ProbeResultOnly = false;
 BaselineRecord baseline = await store.CreateAsync(snapshot, "自动测试基线", CancellationToken.None);
+BaselineListItem availableBaseline = (await store.ListAsync(CancellationToken.None)).Single();
+Assert(availableBaseline.IsAvailable && availableBaseline.UnavailableReason == null,
+    "完整基线应在列表中标为可用。");
+Assert((await store.GetAuditAsync(CancellationToken.None)).Single().IsAvailable,
+    "成功创建的完整基线应在操作记录中标为可用。");
 ReportService reports = new(gateway, store, Options.Create(options));
 DateOnly futureUtcDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1);
 bool explainedUtcLimit = false;
@@ -79,6 +84,8 @@ handler.OmitFirstDay = false;
 handler.EmptyFirstStat = true;
 GlobalSnapshot emptyStatSnapshot = await gateway.GetGlobalAsync(start, end, CancellationToken.None);
 Assert(!emptyStatSnapshot.Stats.ContainsKey("level_01_battle_starts"), "空对象不能被解释为零。");
+Assert(emptyStatSnapshot.EmptyStats.Contains("level_01_battle_starts"),
+    "应区分返回空对象与完全未返回的统计项。");
 ReportResult partial = await reports.GetAsync(start, end, baseline.Id, CancellationToken.None);
 Assert(partial.Levels[0].BattleStarts == null && partial.Levels[0].BattleStartsAfterBaseline == null,
     "缺少全局值的报表单元格应留空。");
@@ -93,7 +100,7 @@ catch (SteamApiException exception)
 {
     emptyStatBaselineRefused = exception.Message.Contains("level_01_battle_starts", StringComparison.Ordinal);
 }
-Assert(emptyStatBaselineRefused, "空对象不能用于创建基线，且应列出缺失项。");
+Assert(emptyStatBaselineRefused, "未经目录核对的空对象不能用于推定 0 基线。");
 handler.EmptyFirstStat = false;
 
 handler.Total = 5;
@@ -118,6 +125,37 @@ Assert((await store.ListAsync(CancellationToken.None)).Count == 1, "拒绝操作
 
 CatalogCheck catalog = await gateway.CheckCatalogAsync(CancellationToken.None);
 Assert(catalog.Found.Count == 41 && catalog.Missing.Count == 0, "应核对目录名称。");
+BaselineRecord inferredBaseline = await store.CreateAsync(emptyStatSnapshot,
+    "推定零基线", CancellationToken.None, catalog);
+Assert(inferredBaseline.Values["level_01_battle_starts"] == 0 &&
+    inferredBaseline.InferredZeroStats.SequenceEqual(new[] { "level_01_battle_starts" }),
+    "目录核对通过后，返回空对象的计数项应以推定 0 保存并标记来源。");
+BaselineListItem inferredListItem = (await store.ListAsync(CancellationToken.None))
+    .Single(item => item.Id == inferredBaseline.Id);
+Assert(inferredListItem.IsAvailable && inferredListItem.InferredZeroStats.Contains("level_01_battle_starts"),
+    "含推定 0 的完整基线应可用，并在列表中说明来源。");
+BaselineAuditRecord inferredAudit = (await store.GetAuditAsync(CancellationToken.None))
+    .Single(item => item.BaselineId == inferredBaseline.Id.ToString());
+Assert(inferredAudit.IsAvailable && inferredAudit.Result.Contains("level_01_battle_starts", StringComparison.Ordinal),
+    "操作记录应保留推定 0 的统计项名称。");
+BaselineRecord savedInferredBaseline = (await store.GetAsync(inferredBaseline.Id, CancellationToken.None))!;
+Assert(savedInferredBaseline.InferredZeroStats.Contains("level_01_battle_starts"),
+    "推定 0 的来源应持久保存。");
+handler.OmitLastStat = false;
+ReportResult inferredReport = await reports.GetAsync(start, end, inferredBaseline.Id, CancellationToken.None);
+Assert(inferredReport.Levels[0].BattleStartsAfterBaseline == 10 &&
+    inferredReport.Warnings.Any(item => item.Contains("推定 0", StringComparison.Ordinal)),
+    "报表应按推定 0 计算差值，并说明基线来源。");
+bool absentStillRejected = false;
+try
+{
+    await store.CreateAsync(incomplete, "完全未返回", CancellationToken.None, catalog);
+}
+catch (SteamApiException exception)
+{
+    absentStillRejected = exception.Message.Contains("tutorial_completed", StringComparison.Ordinal);
+}
+Assert(absentStillRejected, "目录核对通过也不能将完全未返回的统计项推定为 0。");
 handler.OmitAvailableGameStats = true;
 bool explainedMissingCatalog = false;
 try
@@ -146,6 +184,42 @@ catch (SteamApiException exception)
     showedResultCode = exception.Message.Contains("result=8", StringComparison.Ordinal);
 }
 Assert(showedResultCode, "缺少 globalstats 时应显示 Steam 的结果码。");
+
+await store.RecordFailureAsync("失败的创建尝试", "统计项缺值", CancellationToken.None);
+BaselineAuditRecord failedAudit = (await store.GetAuditAsync(CancellationToken.None)).First();
+Assert(!failedAudit.IsAvailable && failedAudit.UnavailableReason == "基线未创建",
+    "创建失败的操作记录应标为不可用。");
+
+await using (SqliteConnection connection = new($"Data Source={databasePath}"))
+{
+    await connection.OpenAsync();
+    await using SqliteCommand command = connection.CreateCommand();
+    command.CommandText = "DELETE FROM baseline_values WHERE baseline_id = $id AND api_name = $name";
+    command.Parameters.AddWithValue("$id", baseline.Id.ToString());
+    command.Parameters.AddWithValue("$name", "level_01_battle_starts");
+    await command.ExecuteNonQueryAsync();
+}
+BaselineListItem unavailableBaseline = (await store.ListAsync(CancellationToken.None))
+    .Single(item => item.Id == baseline.Id);
+Assert(!unavailableBaseline.IsAvailable &&
+    unavailableBaseline.UnavailableReason!.Contains("level_01_battle_starts", StringComparison.Ordinal),
+    "缺少当前目录统计项的基线应在列表中标为不可用，并说明原因。");
+BaselineAuditRecord previousSuccess = (await store.GetAuditAsync(CancellationToken.None))
+    .Single(item => item.BaselineId == baseline.Id.ToString());
+Assert(!previousSuccess.IsAvailable && previousSuccess.UnavailableReason!
+    .Contains("level_01_battle_starts", StringComparison.Ordinal),
+    "已保存基线后来缺项时，操作记录应显示当前不可用。");
+bool rejectedUnavailableBaseline = false;
+try
+{
+    await reports.GetAsync(start, end, baseline.Id, CancellationToken.None);
+}
+catch (SteamApiException exception)
+{
+    rejectedUnavailableBaseline = exception.StatusCode == 422 &&
+        exception.Message.Contains("level_01_battle_starts", StringComparison.Ordinal);
+}
+Assert(rejectedUnavailableBaseline, "报表不能使用不完整的基线。");
 
 SqliteConnection.ClearAllPools();
 File.Delete(databasePath);

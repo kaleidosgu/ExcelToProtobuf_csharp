@@ -23,10 +23,17 @@ internal sealed record DailyValue(DateOnly Date, long Value);
 
 internal sealed record GlobalStat(long Total, IReadOnlyList<DailyValue> History);
 
-internal sealed record GlobalSnapshot(DateTimeOffset FetchedAt, IReadOnlyDictionary<string, GlobalStat> Stats);
+internal sealed record GlobalSnapshot(DateTimeOffset FetchedAt, IReadOnlyDictionary<string, GlobalStat> Stats,
+    IReadOnlyList<string> EmptyStats);
 
 internal sealed record BaselineRecord(Guid Id, uint AppId, DateTimeOffset CreatedAt, string Reason,
-    IReadOnlyDictionary<string, long> Values);
+    IReadOnlyDictionary<string, long> Values, IReadOnlyList<string> InferredZeroStats);
+
+internal sealed record BaselineListItem(Guid Id, uint AppId, DateTimeOffset CreatedAt, string Reason,
+    bool IsAvailable, string? UnavailableReason, IReadOnlyList<string> InferredZeroStats);
+
+internal sealed record BaselineAuditRecord(string OccurredAt, string Action, string BaselineId,
+    string Reason, string OperatorId, string Result, bool IsAvailable, string? UnavailableReason);
 
 internal sealed record ReportRow(int LevelId, long? BattleStarts, long? Reached,
     long? BattleStartsAfterBaseline, long? ReachedAfterBaseline, bool HasAnomaly);

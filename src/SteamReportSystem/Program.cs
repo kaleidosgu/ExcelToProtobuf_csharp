@@ -126,7 +126,9 @@ app.MapPost("/api/baselines", async (HttpContext context, CreateBaselineRequest 
     try
     {
         GlobalSnapshot snapshot = await gateway.GetGlobalAsync(null, null, cancellationToken);
-        BaselineRecord result = await store.CreateAsync(snapshot, reason, cancellationToken);
+        CatalogCheck? catalog = snapshot.EmptyStats.Count > 0
+            ? await gateway.CheckCatalogAsync(cancellationToken) : null;
+        BaselineRecord result = await store.CreateAsync(snapshot, reason, cancellationToken, catalog);
         return Results.Created($"/api/baselines/{result.Id}", result);
     }
     catch (SteamApiException exception)
@@ -148,7 +150,7 @@ static (DateOnly From, DateOnly To) ResolveDateRange(DateOnly? start, DateOnly? 
 static string BuildCsv(ReportResult report)
 {
     StringBuilder csv = new();
-    csv.AppendLine("section,appid,fetched_at_utc,start_date_utc,end_date_utc,baseline_id,level_id,api_name,total,baseline_delta,period_total,date_utc,daily_value");
+    csv.AppendLine("section,appid,fetched_at_utc,start_date_utc,end_date_utc,baseline_id,level_id,api_name,total,baseline_delta,period_total,date_utc,daily_value,baseline_value_source");
     string common = $"{report.AppId},{report.FetchedAt:O},{report.StartDate:yyyy-MM-dd},{report.EndDate:yyyy-MM-dd},{report.Baseline?.Id}";
     foreach (ReportRow level in report.Levels)
     {
@@ -164,7 +166,7 @@ static string BuildCsv(ReportResult report)
         {
             if (day.Values.TryGetValue(definition.ApiName, out long value))
             {
-                csv.AppendLine($"daily,{common},{definition.LevelId:00},{definition.ApiName},,,,{day.Date:yyyy-MM-dd},{value}");
+                csv.AppendLine($"daily,{common},{definition.LevelId:00},{definition.ApiName},,,,{day.Date:yyyy-MM-dd},{value},");
             }
         }
     }
@@ -173,6 +175,8 @@ static string BuildCsv(ReportResult report)
     void AppendStat(string name, long? total, long? delta, string levelId)
     {
         report.PeriodTotals.TryGetValue(name, out long? period);
-        csv.AppendLine($"summary,{common},{levelId},{name},{total},{delta},{period},,");
+        string source = report.Baseline == null ? string.Empty :
+            report.Baseline.InferredZeroStats.Contains(name) ? "inferred_zero" : "steam_total";
+        csv.AppendLine($"summary,{common},{levelId},{name},{total},{delta},{period},,{source}");
     }
 }

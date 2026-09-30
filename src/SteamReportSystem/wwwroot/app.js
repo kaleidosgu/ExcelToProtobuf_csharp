@@ -35,9 +35,13 @@ async function loadBaselines() {
     const select = byId('baseline');
     select.replaceChildren(new Option('不使用基线', ''));
     for (const baseline of list) {
-        select.add(new Option(`${new Date(baseline.createdAt).toLocaleString('zh-CN')} · ${baseline.reason}`, baseline.id));
+        const option = new Option(`${new Date(baseline.createdAt).toLocaleString('zh-CN')} · ${baseline.reason}` +
+            (baseline.isAvailable ? '' : '（不可用）') +
+            (baseline.inferredZeroStats?.length ? `（推定 0：${baseline.inferredZeroStats.length} 项）` : ''), baseline.id);
+        option.disabled = !baseline.isAvailable;
+        select.add(option);
     }
-    select.value = selected;
+    select.value = list.some(item => item.id === selected && item.isAvailable) ? selected : '';
 }
 
 async function loadAudit() {
@@ -47,7 +51,7 @@ async function loadAudit() {
     if (records.length === 0) { container.textContent = '尚无基线操作。'; return; }
     const table = document.createElement('table');
     const head = table.createTHead().insertRow();
-    ['时间', '操作员', '操作', '原因', '结果'].forEach(label => cell(head, label));
+    ['时间', '操作员', '操作', '原因', '结果', '当前是否可用'].forEach(label => cell(head, label));
     const body = table.createTBody();
     for (const record of records) {
         const row = body.insertRow();
@@ -56,6 +60,10 @@ async function loadAudit() {
         cell(row, record.action);
         cell(row, record.reason);
         cell(row, record.result);
+        const status = cell(row, record.isAvailable ? '可用' : '不可用');
+        if (!record.isAvailable) {
+            status.title = record.unavailableReason || '没有可用的基线';
+        }
     }
     container.append(table);
 }
@@ -167,14 +175,16 @@ async function createBaseline() {
     const button = byId('create-baseline');
     const message = byId('baseline-message');
     button.disabled = true;
-    message.textContent = '正在读取全部 41 项实时累计值…';
+    message.textContent = '正在读取 41 项全局统计并核对空值…';
     try {
         const created = await getJson('/api/baselines', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-Requested-With': 'SteamReportSystem'},
             body: JSON.stringify({reason: byId('reason').value})
         });
-        message.textContent = `基线已建立：${created.id}`;
+        message.textContent = `基线已建立：${created.id}` +
+            (created.inferredZeroStats?.length ?
+                `；其中 ${created.inferredZeroStats.length} 项全局值为空，基线按推定 0 保存。` : '');
         await loadBaselines();
         byId('baseline').value = created.id;
         await loadAudit();

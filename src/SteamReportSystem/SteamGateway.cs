@@ -52,6 +52,7 @@ internal sealed class SteamGateway
             throw BuildGlobalStatsError(response);
         }
         Dictionary<string, GlobalStat> stats = new(StringComparer.Ordinal);
+        List<string> emptyStats = new();
 
         foreach (StatDefinition definition in StatCatalog.All)
         {
@@ -61,7 +62,8 @@ internal sealed class SteamGateway
             }
             if (entry.ValueKind == JsonValueKind.Object && !entry.EnumerateObject().Any())
             {
-                // Steam returned this stat name without a value; the response does not identify why.
+                // Keep empty entries distinct from names absent from the response.
+                emptyStats.Add(definition.ApiName);
                 continue;
             }
             if (entry.ValueKind != JsonValueKind.Object ||
@@ -87,7 +89,7 @@ internal sealed class SteamGateway
             stats.Add(definition.ApiName, new GlobalStat(total, history));
         }
 
-        return new GlobalSnapshot(DateTimeOffset.UtcNow, stats);
+        return new GlobalSnapshot(DateTimeOffset.UtcNow, stats, emptyStats);
     }
 
     public async Task<GlobalStatProbe> ProbeGlobalStatAsync(string apiName, DateOnly? start, DateOnly? end,

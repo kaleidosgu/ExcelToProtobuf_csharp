@@ -55,7 +55,7 @@
     <div class="two-column">
       <section class="panel">
         <h2>建立报表基线</h2>
-        <p>保存当前 41 项累计值。之后可以查看相对该时刻的变化；Steam 原始数据不会改变。</p>
+        <p>保存当前 41 项累计值。已发布目录中返回空对象的非负计数项，基线按“推定 0”保存并记录名称；Steam 原始数据不会改变。</p>
         <label>操作原因<textarea id="reason" rows="3" maxlength="500" placeholder="例如：新版本上线，开始新一轮运营统计"></textarea></label>
         <button id="create-baseline">抓取实时值并创建基线</button>
         <p id="baseline-message" class="note"></p>
@@ -82,6 +82,7 @@
       </section>
       <section class="panel">
         <h2>基线操作记录</h2>
+        <p class="note">“当前是否可用”表示该记录对应的基线已保存，且包含当前统计目录所需的全部 41 项基线值；推定 0 的项目列在“结果”中。创建失败的记录显示“不可用”。</p>
         <div id="audit-result" class="table-scroll"></div>
       </section>
     </div>
