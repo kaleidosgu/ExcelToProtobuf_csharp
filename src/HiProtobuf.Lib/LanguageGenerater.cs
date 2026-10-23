@@ -43,10 +43,9 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i];
-                var ilProtoc = Environment.CurrentDirectory + @"\protoc-3.8.0-win64\bin\protocILRuntime.exe";
+                var ilProtoc = Path.Combine(Settings.Protoc_Dir, "bin", "protocILRuntime.exe");
 
-                var command = ilProtoc + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, outFolder, filePath);
-                var log = Common.Cmd(command);
+                var log = Common.Run(ilProtoc, string.Format(" -I=\"{0}\" --csharp_out=\"{1}\" \"{2}\"", protoPath, outFolder, filePath));
             }
             ConvertLineEndingsToCRLF(outFolder);
         }
@@ -66,9 +65,9 @@ namespace HiProtobuf.Lib
                 string[] files = Directory.GetFiles(protoPath, "*.proto", SearchOption.AllDirectories);
                 // 先编译所有 proto 文件到同一个输出目录（为了处理 import）
                 var allProtoFiles = string.Join(" ", files.Select(f => Path.GetFileName(f)));
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --csharp_out={1} {2}", protoPath, stagingFolder, allProtoFiles);
-                Log.Info($"Proto编译命令(C#): {command}");
-                var log = Common.Cmd(command);
+                var arguments = string.Format(" -I=\"{0}\" --csharp_out=\"{1}\" {2}", protoPath, stagingFolder, allProtoFiles);
+                Log.Info($"Proto编译命令(C#): {Settings.Protoc_Path} {arguments}");
+                var log = Common.Run(Settings.Protoc_Path, arguments);
                 Log.Info($"Proto编译结果(C#): {log}");
 
                 // 在内存中统一换行符，再按命名空间直接创建最终文件。
@@ -134,9 +133,9 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i];
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --cpp_out={1} {2}", protoPath, outFolder, filePath);
-                Log.Info($"Proto编译命令(C++): {command}");
-                var log = Common.Cmd(command);
+                var arguments = string.Format(" -I=\"{0}\" --cpp_out=\"{1}\" \"{2}\"", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(C++): {Settings.Protoc_Path} {arguments}");
+                var log = Common.Run(Settings.Protoc_Path, arguments);
                 Log.Info($"Proto编译结果(C++): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
@@ -151,9 +150,9 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i];
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --go_out={1} {2}", protoPath, outFolder, filePath);
-                Log.Info($"Proto编译命令(Go): {command}");
-                var log = Common.Cmd(command);
+                var arguments = string.Format(" -I=\"{0}\" --go_out=\"{1}\" \"{2}\"", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(Go): {Settings.Protoc_Path} {arguments}");
+                var log = Common.Run(Settings.Protoc_Path, arguments);
                 Log.Info($"Proto编译结果(Go): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
@@ -168,9 +167,9 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i];
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --java_out={1} {2}", protoPath, outFolder, filePath);
-                Log.Info($"Proto编译命令(Java): {command}");
-                var log = Common.Cmd(command);
+                var arguments = string.Format(" -I=\"{0}\" --java_out=\"{1}\" \"{2}\"", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(Java): {Settings.Protoc_Path} {arguments}");
+                var log = Common.Run(Settings.Protoc_Path, arguments);
                 Log.Info($"Proto编译结果(Java): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);
@@ -185,9 +184,9 @@ namespace HiProtobuf.Lib
             for (int i = 0; i < files.Length; i++)
             {
                 var filePath = files[i];
-                var command = Settings.Protoc_Path + string.Format(" -I={0} --python_out={1} {2}", protoPath, outFolder, filePath);
-                Log.Info($"Proto编译命令(Python): {command}");
-                var log = Common.Cmd(command);
+                var arguments = string.Format(" -I=\"{0}\" --python_out=\"{1}\" \"{2}\"", protoPath, outFolder, filePath);
+                Log.Info($"Proto编译命令(Python): {Settings.Protoc_Path} {arguments}");
+                var log = Common.Run(Settings.Protoc_Path, arguments);
                 Log.Info($"Proto编译结果(Python): {log}");
             }
             ConvertLineEndingsToCRLF(outFolder);

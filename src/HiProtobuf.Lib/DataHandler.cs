@@ -207,7 +207,7 @@ namespace HiProtobuf.Lib
                     }
                     if (_worksheet.Tables == null || _worksheet.Tables.Count == 0)
                     {
-                        Log.Error($"Worksheet {_worksheet.Name} 没有找到Table");
+                        Log.Warning($"Worksheet {_worksheet.Name} 没有找到Table");
                         continue;
                     }
                     var _table = _worksheet.Tables[0];
@@ -288,7 +288,6 @@ namespace HiProtobuf.Lib
                             }
                         }
                     }
-                    Console.WriteLine($"_excelIns  {path} ");
                     Serialize(_excelIns);
                 }
             }

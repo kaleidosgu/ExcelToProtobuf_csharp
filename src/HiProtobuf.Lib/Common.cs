@@ -68,29 +68,31 @@ namespace HiProtobuf.Lib
             "double[]", "float[]", "int32[]", "int64[]", "uint32[]", "uint64[]", "sint32[]", "sint64[]", "fixed32[]", "fixed64[]","sfixed32[]", "sfixed64[]", "bool[]", "string[]", "bytes[]", "text[]"
         };
 
-        internal static string Cmd(string str)
+        internal static string Run(string fileName, string arguments)
         {
             System.Diagnostics.Process process = new System.Diagnostics.Process();
-            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.FileName = fileName;
+            process.StartInfo.Arguments = arguments ?? string.Empty;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.RedirectStandardInput = true;
+            process.StartInfo.StandardOutputEncoding = System.Text.Encoding.Default;
+            process.StartInfo.StandardErrorEncoding = System.Text.Encoding.Default;
             process.Start();
-
-            process.StandardInput.WriteLine(str);
-            process.StandardInput.AutoFlush = true;
-            process.StandardInput.WriteLine("exit");
 
             var output = process.StandardOutput.ReadToEnd();
             var error = process.StandardError.ReadToEnd();
 
             process.WaitForExit();
 
+            if (process.ExitCode != 0)
+            {
+                return "ERROR(" + process.ExitCode + "): " + error + "\nOUTPUT: " + output;
+            }
             if (!string.IsNullOrEmpty(error))
             {
-                return "ERROR: " + error + "\nOUTPUT: " + output;
+                return output + "\nSTDERR: " + error;
             }
             return output;
         }

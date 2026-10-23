@@ -26,3 +26,6 @@ src/SteamReportSystem.Tests/obj/
 /Example/HiProtobuf/Config.xml
 /Example/GoogleLocalization/*.pdb
 *.pdb
+src/HiProtobuf.Cli/bin/
+src/HiProtobuf.Cli/obj/
+dist/

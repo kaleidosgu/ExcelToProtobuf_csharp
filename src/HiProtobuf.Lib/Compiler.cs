@@ -31,13 +31,22 @@ namespace HiProtobuf.Lib
 
         public void Porcess()
         {
-            var commond = @"-target:library -out:{0} -reference:{1} -recurse:{2}\*.cs";
+            var commond = @"-target:library -out:{0} -reference:{1} -recurse:{2}";
             var dllPath = Settings.Export_Folder + Settings.language_folder + Settings.csharp_dll_folder + DllName;
             var csharpFolder = Settings.Export_Folder + Settings.language_folder + Settings.csharp_folder;
-            commond = Settings.Compiler_Path + " " + string.Format(commond, dllPath, Settings.Protobuf_Dll_Path, csharpFolder);
-            //Log.Info($"编译命令: {commond}");
-            var result = Common.Cmd(commond);
-            //Log.Info($"编译结果: {result}");
+            commond = string.Format(commond,
+                Quote(dllPath), Quote(Settings.Protobuf_Dll_Path), Quote(csharpFolder + @"\*.cs"));
+            var result = Common.Run(Settings.Compiler_Path, commond);
+            if (!File.Exists(dllPath))
+            {
+                throw new InvalidOperationException("C# 编译失败，未生成 " + dllPath
+                    + Environment.NewLine + "编译器输出：" + Environment.NewLine + result);
+            }
+        }
+
+        private static string Quote(string path)
+        {
+            return "\"" + (path ?? string.Empty) + "\"";
         }
     }
 }

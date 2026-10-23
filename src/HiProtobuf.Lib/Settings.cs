@@ -32,15 +32,24 @@ namespace HiProtobuf.Lib
         public static string Compiler_Path = string.Empty;
 
         /// <summary>
-        /// protobuf dll
+        /// protobuf dll（始终与程序同目录，避免依赖当前工作目录）
         /// </summary>
-        public static readonly string Protobuf_Dll_Path = Environment.CurrentDirectory + @"\Google.Protobuf.dll";
+        public static readonly string Protobuf_Dll_Path = System.IO.Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "Google.Protobuf.dll");
+
+        /// <summary>
+        /// protoc 工具链根目录（默认与程序同级，可由命令行工具覆盖）
+        /// </summary>
+        public static string Protoc_Dir = System.IO.Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "protoc-3.8.0-win64");
 
         /// <summary>
         /// protoc路径
         /// </summary>
-        public static readonly string Protoc_Path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            @"protoc-3.8.0-win64\bin\protoc.exe");
+        public static string Protoc_Path
+        {
+            get { return System.IO.Path.Combine(Protoc_Dir, "bin", "protoc.exe"); }
+        }
 
         /// <summary>
         /// Proto文件存放目录
