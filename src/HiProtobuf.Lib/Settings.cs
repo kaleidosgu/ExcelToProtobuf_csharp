@@ -22,6 +22,11 @@ namespace HiProtobuf.Lib
         public static string Excel_Folder = string.Empty;
 
         /// <summary>
+        /// Source directory for proto enum definitions (never an output directory).
+        /// </summary>
+        public static string Enum_Proto_Folder = string.Empty;
+
+        /// <summary>
         /// 编译器路径
         /// </summary>
         public static string Compiler_Path = string.Empty;
@@ -34,7 +39,8 @@ namespace HiProtobuf.Lib
         /// <summary>
         /// protoc路径
         /// </summary>
-        public static readonly string Protoc_Path = Environment.CurrentDirectory + @"\protoc-3.8.0-win64\bin\protoc.exe";
+        public static readonly string Protoc_Path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+            @"protoc-3.8.0-win64\bin\protoc.exe");
 
         /// <summary>
         /// Proto文件存放目录

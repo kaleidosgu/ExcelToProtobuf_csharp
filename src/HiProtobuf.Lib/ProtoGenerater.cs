@@ -126,6 +126,7 @@ option csharp_namespace = ""{1}"";
         /// <param name="infos"></param>
         private string GetVariableString(string type, string name)
         {
+            type = EnumRegistry.GetBaseType(type);
             AssertThat.IsTrue(Common.VariableType.Contains(type), "Type define error");
             if (type == Common.text_)
             {

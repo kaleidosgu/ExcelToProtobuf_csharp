@@ -18,16 +18,17 @@ namespace HiProtobuf.Lib
                 Log.Error("导出文件夹未配置");
                 return;
             }
-            if (string.IsNullOrEmpty(Settings.Export_Folder))
+            if (string.IsNullOrEmpty(Settings.Excel_Folder))
             {
                 Log.Error("Excel文件夹未配置");
                 return;
             }
-            if (string.IsNullOrEmpty(Settings.Export_Folder))
+            if (string.IsNullOrEmpty(Settings.Compiler_Path))
             {
                 Log.Error("编译器路径未配置");
                 return;
             }
+            EnumRegistry enumRegistry = EnumRegistry.Preflight();
             Log.Info("开始生成协议");
             new ProtoHandler().Process();
             Log.Info("生成协议结束");
@@ -38,8 +39,9 @@ namespace HiProtobuf.Lib
             new Compiler().Porcess();
             Log.Info("编译语言结束");
             Log.Info("开始生成数据");
-            new DataHandler().Process();
+            new DataHandler(enumRegistry).Process();
             Log.Info("生成数据结束");
+            enumRegistry.SaveSnapshot();
         }
     }
 }

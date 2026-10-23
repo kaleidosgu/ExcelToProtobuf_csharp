@@ -6,6 +6,8 @@
 src/HiProtobuf.Lib/bin
 src/HiProtobuf.Test/bin
 src/HiProtobuf.UI/bin
+src/HiProtobuf.ExportConsole/bin/
+src/HiProtobuf.ExportConsole/obj/
 src/GoogleLocalization/GoogleLocalization/obj/Debug
 src/Localize/Localize/obj
 src/OllamaLocalization/OllamaLocalization/obj/Debug
@@ -16,3 +18,11 @@ src/SteamReportSystem/data/
 src/SteamReportSystem.Tests/bin/
 src/SteamReportSystem/obj/
 src/SteamReportSystem.Tests/obj/
+/Example/HiProtobuf/*.exe
+/Example/HiProtobuf/*.exe.config
+/Example/HiProtobuf/*.dll
+/Example/HiProtobuf/*.pdb
+/Example/HiProtobuf/EPPlus.xml
+/Example/HiProtobuf/Config.xml
+/Example/GoogleLocalization/*.pdb
+*.pdb

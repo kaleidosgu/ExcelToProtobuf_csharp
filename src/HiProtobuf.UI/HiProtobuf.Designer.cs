@@ -36,6 +36,9 @@
             this.BtnChooseCsc = new System.Windows.Forms.Button();
             this.BtnExport = new System.Windows.Forms.Button();
             this.textBox6 = new System.Windows.Forms.TextBox();
+            this.textBoxEnumProto = new System.Windows.Forms.TextBox();
+            this.BtnChooseEnumProto = new System.Windows.Forms.Button();
+            this.labelEnumProto = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // BtnChooseExprot
@@ -101,7 +104,7 @@
             // BtnExport
             // 
             this.BtnExport.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.BtnExport.Location = new System.Drawing.Point(310, 181);
+            this.BtnExport.Location = new System.Drawing.Point(310, 226);
             this.BtnExport.Name = "BtnExport";
             this.BtnExport.Size = new System.Drawing.Size(160, 70);
             this.BtnExport.TabIndex = 10;
@@ -112,19 +115,43 @@
             // textBox6
             // 
             this.textBox6.Cursor = System.Windows.Forms.Cursors.Arrow;
-            this.textBox6.Location = new System.Drawing.Point(37, 257);
+            this.textBox6.Location = new System.Drawing.Point(37, 302);
             this.textBox6.Multiline = true;
             this.textBox6.Name = "textBox6";
             this.textBox6.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.textBox6.Size = new System.Drawing.Size(703, 370);
             this.textBox6.TabIndex = 11;
             this.textBox6.TextChanged += new System.EventHandler(this.textBox6_TextChanged);
+            // textBoxEnumProto
+            this.textBoxEnumProto.Location = new System.Drawing.Point(37, 181);
+            this.textBoxEnumProto.Name = "textBoxEnumProto";
+            this.textBoxEnumProto.Size = new System.Drawing.Size(613, 21);
+            this.textBoxEnumProto.TabIndex = 12;
+            this.textBoxEnumProto.TextChanged += new System.EventHandler(this.textBoxEnumProto_TextChanged);
+            // BtnChooseEnumProto
+            this.BtnChooseEnumProto.Location = new System.Drawing.Point(665, 181);
+            this.BtnChooseEnumProto.Name = "BtnChooseEnumProto";
+            this.BtnChooseEnumProto.Size = new System.Drawing.Size(75, 23);
+            this.BtnChooseEnumProto.TabIndex = 13;
+            this.BtnChooseEnumProto.Text = "选择";
+            this.BtnChooseEnumProto.UseVisualStyleBackColor = true;
+            this.BtnChooseEnumProto.Click += new System.EventHandler(this._OnClickChooseEnumProto);
+            // labelEnumProto
+            this.labelEnumProto.AutoSize = true;
+            this.labelEnumProto.Location = new System.Drawing.Point(37, 166);
+            this.labelEnumProto.Name = "labelEnumProto";
+            this.labelEnumProto.Size = new System.Drawing.Size(173, 12);
+            this.labelEnumProto.TabIndex = 14;
+            this.labelEnumProto.Text = "枚举 Proto 源目录（按需配置）";
             // 
             // HiProtobuf
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 639);
+            this.ClientSize = new System.Drawing.Size(800, 690);
+            this.Controls.Add(this.BtnChooseEnumProto);
+            this.Controls.Add(this.textBoxEnumProto);
+            this.Controls.Add(this.labelEnumProto);
             this.Controls.Add(this.textBox6);
             this.Controls.Add(this.BtnExport);
             this.Controls.Add(this.BtnChooseCsc);
@@ -151,6 +178,9 @@
         private System.Windows.Forms.Button BtnChooseCsc;
         private System.Windows.Forms.Button BtnExport;
         private System.Windows.Forms.TextBox textBox6;
+        private System.Windows.Forms.TextBox textBoxEnumProto;
+        private System.Windows.Forms.Button BtnChooseEnumProto;
+        private System.Windows.Forms.Label labelEnumProto;
     }
 }
 

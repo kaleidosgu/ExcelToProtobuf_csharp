@@ -20,6 +20,7 @@ namespace HiProtobuf.UI
             if (!string.IsNullOrEmpty(Settings.Export_Folder)) textBox1.Text = Settings.Export_Folder;
             if (!string.IsNullOrEmpty(Settings.Excel_Folder)) textBox2.Text = Settings.Excel_Folder;
             if (!string.IsNullOrEmpty(Settings.Compiler_Path)) textBox5.Text = Settings.Compiler_Path;
+            if (!string.IsNullOrEmpty(Settings.Enum_Proto_Folder)) textBoxEnumProto.Text = Settings.Enum_Proto_Folder;
             Log.OnInfo += (x) =>
             {
                 textBox6.Text = Logger.Log;
@@ -84,12 +85,35 @@ namespace HiProtobuf.UI
             Settings.Compiler_Path = textBox5.Text;
         }
 
+        private void _OnClickChooseEnumProto(object sender, EventArgs e)
+        {
+            using (FolderBrowserDialog dialog = new FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    textBoxEnumProto.Text = dialog.SelectedPath;
+                }
+            }
+        }
+
+        private void textBoxEnumProto_TextChanged(object sender, EventArgs e)
+        {
+            Settings.Enum_Proto_Folder = textBoxEnumProto.Text;
+        }
+
         private void _OnExportClick(object sender, EventArgs e)
         {
             Log.Info("开始导出");
-            Manager.Export();
-            Log.Info("导出结束");
-            Config.Save();
+            try
+            {
+                Config.Save();
+                Manager.Export();
+                Log.Info("导出结束");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("导出失败：" + ex.Message);
+            }
         }
 
         private void textBox6_TextChanged(object sender, EventArgs e)

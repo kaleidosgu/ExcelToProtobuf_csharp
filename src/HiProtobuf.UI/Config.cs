@@ -27,6 +27,9 @@ namespace HiProtobuf.UI
                 Settings.Export_Folder = Path.GetFullPath(pathCfg.Export_Folder);
                 Settings.Excel_Folder = Path.GetFullPath(pathCfg.Excel_Folder);
                 Settings.Compiler_Path = pathCfg.Compiler_Path;
+                Settings.Enum_Proto_Folder = string.IsNullOrWhiteSpace(pathCfg.Enum_Proto_Folder)
+                    ? string.Empty : Path.GetFullPath(Path.Combine(
+                        AppDomain.CurrentDomain.BaseDirectory, pathCfg.Enum_Proto_Folder));
                 stream.Close();
             }
         }
@@ -46,6 +49,14 @@ namespace HiProtobuf.UI
             pathCfg.Excel_Folder = result;
 
             pathCfg.Compiler_Path = Settings.Compiler_Path;
+            if (!string.IsNullOrWhiteSpace(Settings.Enum_Proto_Folder))
+            {
+                url1 = new Uri(Path.GetFullPath(Settings.Enum_Proto_Folder) + Path.DirectorySeparatorChar);
+                Uri relative = url2.MakeRelativeUri(url1);
+                pathCfg.Enum_Proto_Folder = relative.IsAbsoluteUri
+                    ? Path.GetFullPath(Settings.Enum_Proto_Folder)
+                    : Uri.UnescapeDataString(relative.ToString());
+            }
             XmlSerializer xs = XmlSerializer.FromTypes(new Type[] { typeof(PathConfig) })[0];
             Stream stream = new FileStream(_path, FileMode.Create, FileAccess.Write, FileShare.Read);
             xs.Serialize(stream, pathCfg);
@@ -57,5 +68,6 @@ namespace HiProtobuf.UI
         public string Export_Folder;
         public string Excel_Folder;
         public string Compiler_Path;
+        public string Enum_Proto_Folder;
     }
 }

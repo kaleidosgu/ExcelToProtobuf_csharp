@@ -26,6 +26,7 @@ namespace HiProtobuf.Lib
         private Assembly _assembly;
         private object _excelIns;
         private readonly LocalizationRegistry _localizationRegistry = new LocalizationRegistry();
+        private readonly EnumRegistry _enumRegistry;
 
         private sealed class DataSource
         {
@@ -34,8 +35,9 @@ namespace HiProtobuf.Lib
             public string ClassName { get; set; }
         }
 
-        public DataHandler()
+        public DataHandler(EnumRegistry enumRegistry = null)
         {
+            _enumRegistry = enumRegistry;
             var folder = Settings.Export_Folder + Settings.dat_folder;
             if (Directory.Exists(folder))
             {
@@ -411,6 +413,25 @@ namespace HiProtobuf.Lib
 
         object GetVariableValue(string type, string value)
         {
+            string enumType;
+            bool isArray;
+            if (EnumRegistry.TryGetEnumType(type, out enumType, out isArray))
+            {
+                AssertThat.IsNotNull(_enumRegistry, "Enum registry is missing");
+                if (!isArray)
+                {
+                    return _enumRegistry.Resolve(enumType, value);
+                }
+                RepeatedField<uint> values = new RepeatedField<uint>();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    foreach (string item in value.Trim('"').Split('|'))
+                    {
+                        values.Add(_enumRegistry.Resolve(enumType, item));
+                    }
+                }
+                return values;
+            }
             var isEmpty = false;
             if (string.IsNullOrEmpty(value))
             {
